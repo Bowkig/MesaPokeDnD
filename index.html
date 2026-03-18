@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestor de Rol - Mundo Misterioso</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="datos/enciclopedia.js"></script>
+    <style>
+        body { font-family: 'Georgia', serif; background-color: #fdf5e6; background-image: radial-gradient(#fdf5e6 50%, #d4b886 100%); color: #3e2723; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .contenedor-pergamino { background-color: rgba(255, 255, 240, 0.8); border: 2px solid #8b4513; border-radius: 8px; padding: 30px; box-shadow: 8px 8px 15px rgba(0, 0, 0, 0.4); max-width: 450px; width: 100%; transition: max-width 0.3s ease; }
+        .layout-principal { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 850px) { .contenedor-pergamino { max-width: 1000px; } .layout-principal { grid-template-columns: 1fr 1fr; gap: 40px; } }
+        
+        h1, h2, h3 { color: #8b0000; text-align: center; border-bottom: 2px dashed #8b4513; padding-bottom: 10px; margin-top: 0; }
+        h3 { margin-top: 25px; font-size: 18px; }
+        label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #8b4513; border-radius: 4px; background-color: #fffaf0; font-family: 'Georgia', serif; font-size: 14px; box-sizing: border-box; color: #8b0000; font-weight: bold; }
+        textarea { resize: vertical; min-height: 50px; } 
+        .cuadricula-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .seccion-foto { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; background-color: rgba(139, 69, 19, 0.1); padding: 15px; border-radius: 10px; border: 1px dashed #8b4513; }
+        .marco-foto { width: 160px; height: 160px; border: 4px solid #8b4513; border-radius: 50%; overflow: hidden; background-color: #2c1a0f; display: flex; justify-content: center; align-items: center; box-shadow: inset 0px 0px 10px rgba(0,0,0,0.8), 3px 3px 8px rgba(0,0,0,0.3); margin-bottom: 10px; }
+        .marco-foto img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; transform-origin: 50% 50%; transition: transform 0.1s ease-out; }
+        
+        .cuadricula-objetivos { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
+        @media (min-width: 850px) { .cuadricula-objetivos { grid-template-columns: 1fr 1fr 1fr; } }
+        .seccion-objetivo { background-color: rgba(139, 69, 19, 0.1); padding: 10px; border-radius: 5px; border: 1px dashed #8b4513; text-align: center; }
+        .marco-objetivo { width: 100%; height: 150px; border: 3px solid #8b4513; border-radius: 8px; overflow: hidden; background-color: #2c1a0f; margin-bottom: 10px; }
+        .marco-objetivo img { width: 100%; height: 100%; object-fit: cover; }
+        
+        input[type="file"] { border: none; background: none; padding: 0; font-size: 12px; cursor: pointer; width: auto; margin-bottom: 5px; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 0; padding: 0; border: none; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: #8b4513; border-radius: 3px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #8b0000; cursor: pointer; margin-top: -5px; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        
+        .etiqueta-barra { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 15px; margin-bottom: 5px; }
+        .barra-fondo { width: 100%; height: 20px; background-color: #3e2723; border: 2px solid #8b4513; border-radius: 10px; overflow: hidden; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); }
+        .barra-relleno { height: 100%; width: 0%; transition: width 0.4s ease-out; }
+        .color-hp { background-color: #32cd32; } .color-pp { background-color: #1e90ff; } 
+        .nota-pequena { font-size: 12px; color: #5c0000; font-style: italic; text-align: center; display: block; margin-bottom: 10px; }
+        .nota-ayuda { font-size: 11px; color: #8b4513; display: block; text-align: center; margin-bottom: 10px; }
+        
+        ul.lista-resumen { padding-left: 20px; color: #8b0000; font-weight: bold; }
+        ul.lista-resumen li { margin-bottom: 5px; }
+        
+        /* BOTONES Y MENÚ */
+        button { background-color: #8b0000; color: white; font-size: 18px; font-family: 'Georgia', serif; font-weight: bold; border: 2px solid #5c0000; padding: 12px; margin-top: 25px; border-radius: 5px; cursor: pointer; width: 100%; box-shadow: 3px 3px 0px #5c0000; transition: 0.2s; }
+        button:hover { background-color: #a52a2a; transform: translateY(2px); box-shadow: 1px 1px 0px #5c0000; }
+        .btn-secundario { background-color: #8b4513; border-color: #5c2e0b; box-shadow: 3px 3px 0px #5c2e0b; }
+        .btn-secundario:hover { background-color: #a0522d; box-shadow: 1px 1px 0px #5c2e0b; }
+        .contenedor-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .btn-pequeno { font-size: 14px; padding: 8px; margin-top: 0; background-color: #5c2e0b; width: auto; display: inline-block; margin-bottom: 15px; }
+        
+        .cuadricula-menu { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 850px) { .cuadricula-menu { grid-template-columns: 1fr 1fr; } }
+        .menu-principal-btn { padding: 15px; font-size: 20px; margin-top: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 110px; }
+        .menu-principal-btn span { font-size: 13px; font-weight: normal; margin-top: 5px; opacity: 0.8; }
+
+        /* --- NUEVO: BOTONES INTERACTIVOS PARA LA MESA --- */
+        .btn-mini { width: auto !important; margin-top: 0 !important; padding: 0px 10px !important; font-size: 18px !important; font-weight: bold; background-color: #8b0000; color: white; border: 2px solid #5c0000; border-radius: 4px; cursor: pointer; display: inline-block !important; box-shadow: none !important; }
+        .btn-mini:hover { background-color: #a52a2a; }
+        
+        .btn-usar { width: auto !important; margin-top: 0 !important; padding: 4px 8px !important; font-size: 12px !important; background-color: #5c2e0b; color: white; border: 1px solid #3e1f07; border-radius: 4px; cursor: pointer; float: right; font-family: 'Georgia', serif; box-shadow: none !important; }
+        .btn-usar:hover { background-color: #8b4513; }
+        
+        .btn-curar { background-color: #32cd32; color: #004d00; border-color: #1e7d1e; font-weight: bold; }
+        .btn-curar:hover { background-color: #3ee03e; }
+        
+        /* --- NUEVO DISEÑO PARA LOS DADOS SEPARADOS --- */
+        .area-dados { background-color: rgba(139, 69, 19, 0.1); padding: 30px; border-radius: 10px; border: 2px dashed #8b4513; text-align: center; margin-top: 20px; }
+        .btn-dado { font-size: 24px; padding: 15px; margin: 5px; width: 80px; display: inline-block; }
+        
+        /* Contenedor flexible para alinear las cajas de dados */
+        .contenedor-dados-resultados { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 25px 0; }
+        
+        /* Estética de cada dado individual */
+        .caja-dado {
+            width: 70px; height: 70px; background-color: #fffaf0; border: 4px solid #8b0000; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: bold; color: #8b0000;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.3); animation: saltarDado 0.3s ease-out;
+        }
+        
+        /* Colores especiales para críticos */
+        .caja-dado.critico-exito { border-color: #32cd32; color: #32cd32; box-shadow: 0 0 15px #32cd32; }
+        .caja-dado.critico-pifia { border-color: #5c0000; color: white; background-color: #8b0000; }
+        
+        /* --- NUEVO: ESTILO PARA EL DADO SELECCIONADO --- */
+        .dado-seleccionado {
+            border-color: #d4af37 !important;
+            background-color: #fff8dc !important;
+            box-shadow: 0 0 20px #d4af37 !important;
+            transform: scale(1.15) !important;
+            z-index: 10;
+        }
+
+        /* Animación para que parezca que los tiras en la mesa */
+        @keyframes saltarDado {
+            0% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+            50% { transform: translateY(5px) scale(1.1); }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        .total-dado { font-size: 22px; font-weight: bold; color: #3e2723; margin-bottom: 10px; border-top: 2px dashed #8b4513; padding-top: 15px; }
+
+        .area-grafica { width: 100%; margin-top: 25px; background-color: rgba(255, 255, 255, 0.6); border-radius: 10px; padding: 10px; box-sizing: border-box; border: 1px dashed #8b4513; }
+        .grupo-ataque, .grupo-equipo { background-color: rgba(139, 69, 19, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px solid rgba(139, 69, 19, 0.3); }
+        .pantalla { animation: aparecer 0.3s ease-out; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <body>
+    <audio id="musicaTema" loop>
+        <source src="Passport Setup-Mario Party Advance Music Extended.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="contenedor-pergamino">
+        
+        <div id="pantallaInicio" class="pantalla">
+            <h1 style="font-size: 32px; margin-bottom: 30px; border-bottom: 4px double #8b4513;">Mesa de Rol</h1>
+            <p style="text-align: center; font-style: italic; color: #5c0000; margin-bottom: 30px;">Selecciona un módulo para comenzar.</p>
+
+            <div class="cuadricula-menu">
+                <button class="menu-principal-btn" onclick="cambiarPantalla('pantallaStats')">✨ Forjar Héroe<span>Creador de Personajes</span></button>
+                <button class="menu-principal-btn btn-secundario" onclick="cambiarPantalla('pantallaCampamento')">⛺ El Campamento<span>Tabla de Personajes</span></button>
+                <button class="menu-principal-btn" style="background-color: #2f4f4f; border-color: #1a2b2b; box-shadow: 3px 3px 0px #1a2b2b;" onclick="cambiarPantalla('pantallaMovimientos')">📖 La Enciclopedia<span>Catálogos, Magias y Objetos</span></button>
+                <button class="menu-principal-btn" style="background-color: #4b0082; border-color: #290048; box-shadow: 3px 3px 0px #290048;" onclick="cambiarPantalla('pantallaDados')">🎲 Lanzar Dados<span>Simulador de D20 y otros</span></button>
+                <button class="menu-principal-btn" style="background-color: #556b2f; border-color: #3b4d20; box-shadow: 3px 3px 0px #3b4d20;" onclick="cambiarPantalla('pantallaInfo')">📋 Tablón de Reglas<span>Estados Alterados y Tipos</span></button>
+                
+                <button class="menu-principal-btn" style="background-color: #d2691e; border-color: #8b4513; box-shadow: 3px 3px 0px #8b4513;" onclick="cambiarPantalla('pantallaTienda')">🏪 Tienda del Gremio<span>Recetas, Objetos y Landhai</span></button>
+                
+                <button class="menu-principal-btn" style="background-color: #4682b4; border-color: #27408b; box-shadow: 3px 3px 0px #27408b; grid-column: 1 / -1;" onclick="cambiarPantalla('pantallaAliados')">🗺️ Mapa y Aliados<span>Exploración y Reclutamiento</span></button>
+            </div>
+        </div>
+
+        <div id="pantallaDados" class="pantalla" style="display: none;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h2>Mesa de Dados</h2>
+            
+            <div class="area-dados">
+                <h3 style="color: #8b0000; margin-top: 0; font-size: 20px;">1. Dado Principal (D20)</h3>
+                <p style="margin-top: 0; font-size: 14px; font-style: italic;">Lanza tu d20 (Si tienes ventaja, lanza 2 o 3 y toca el más alto).</p>
+                <div>
+                    <button class="btn-dado" style="background-color: #d4af37; border-color: #8b6508; color: #3e2723; padding: 10px;" onclick="tirarD20(1)">1d20</button>
+                    <button class="btn-dado" style="background-color: #d4af37; border-color: #8b6508; color: #3e2723; padding: 10px;" onclick="tirarD20(2)">2d20</button>
+                    <button class="btn-dado" style="background-color: #d4af37; border-color: #8b6508; color: #3e2723; padding: 10px;" onclick="tirarD20(3)">3d20</button>
+                </div>
+                <div class="contenedor-dados-resultados" id="contenedorD20" style="margin-top: 15px;"></div>
+                <div id="mensajeD20" style="font-style: italic; color: #5c0000; font-size: 14px; font-weight: bold; min-height: 20px;">Esperando lanzamiento...</div>
+
+                <hr style="border: 1px dashed #8b4513; margin: 20px 0;">
+
+                <h3 style="color: #8b0000; margin-top: 0; font-size: 20px;">2. Dado de Movimiento</h3>
+                <p style="margin-top: 0; font-size: 14px; font-style: italic;">Lanza el dado extra que indica tu magia o ataque.</p>
+                <div>
+                    <button class="btn-dado" style="padding: 10px;" onclick="tirarExtra(4)">d4</button>
+                    <button class="btn-dado" style="padding: 10px;" onclick="tirarExtra(6)">d6</button>
+                    <button class="btn-dado" style="padding: 10px;" onclick="tirarExtra(10)">d10</button>
+                    <button class="btn-dado" style="padding: 10px; background-color: #5c0000; border-color: #3e0000; font-size: 14px;" onclick="borrarExtra()">Ninguno</button>
+                </div>
+                <div class="contenedor-dados-resultados" id="contenedorExtra" style="margin-top: 15px;"></div>
+
+                <hr style="border: 2px solid #8b0000; margin: 30px 0;">
+
+                <!--<hr style="border: 1px dashed #8b4513; margin: 30px 0;">-->
+
+                <h3 style="color: #8b0000; margin-bottom: 15px; font-size: 22px;">⚔️ Calculadora de Combate</h3>
+                <div class="cuadricula-stats" style="text-align: left; background-color: rgba(255, 255, 240, 0.9); padding: 15px; border-radius: 8px; border: 1px solid #8b4513;">
+                    
+                    <div><label>Ofensiva (Atq o Atq.Esp):</label><input type="number" id="calcAtq" value="0"></div>
+                    <div><label>Defensa del Rival (Def o Def.Esp):</label><input type="number" id="calcDef" value="0"></div>
+                    
+                    <div style="grid-column: span 2;">
+                        <label>Multiplicador (Debilidad/Resistencia):</label>
+                        <select id="calcMult" style="width: 100%; padding: 8px; border: 1px solid #8b4513; border-radius: 4px; font-weight: bold; font-family: 'Georgia', serif; color: #8b0000;">
+                            <option value="0">Inmune (x0)</option>
+                            <option value="0.5">Poco Efectivo (x0.5)</option>
+                            <option value="1" selected>Efectividad Normal (x1)</option>
+                            <option value="1.5">Efectivo (x1.5)</option>
+                            <option value="2">Súper Efectivo (x2)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button style="background-color: #8b0000; border-color: #5c0000; color: white; margin-top: 15px; font-size: 20px; box-shadow: 3px 3px 0px #5c0000;" onclick="calcularDañoOficial()">💥 Calcular con el Dado Seleccionado</button>
+                
+                <div class="resultado-dado" id="resultadoDañoTotal" style="font-size: 55px; display: none; margin-top: 20px;">0</div>
+                <div id="desgloseFormula" style="font-style: italic; color: #5c0000; font-size: 16px; margin-top: 10px; line-height: 1.5;"></div>
+
+            </div>
+        </div>
+
+        <div id="pantallaInfo" class="pantalla" style="display: none; width: 100%; max-width: 900px; margin: 0 auto;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h1 style="margin-top: 0; font-size: 28px;">📋 Tablón de Reglas</h1>
+
+            <div style="background: #3e2723; color: #d4af37; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 25px; margin-top: 15px; border: 2px solid #d4af37;">
+                <h3 style="margin: 0 0 10px 0; font-size: 18px;">🧮 Fórmula Oficial de Daño</h3>
+                <p style="margin: 0; font-size: 16px; font-weight: bold; font-family: monospace;">[ D20 + Dado Extra + Ataque - Defensa Enemiga ] = Daño Final</p>
+                <p style="margin: 5px 0 0 0; font-size: 13px; font-style: italic; color: #f5deb3;">*Si tienes Ventaja, tira varios d20 y selecciona los que uses. Si el ataque es Especial, usa Atq. Esp. y Def. Esp.</p>
+            </div>
+
+            <h2 style="color: #8b0000; border-bottom: 2px solid #8b0000;">⏱️ Iniciativa y Orden de Turnos</h2>
+            <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #daa520; margin-bottom: 30px;">
+                <p style="font-size: 14px; margin-top: 0;">El orden de ataque en cada ronda se decide por la estadística de <b>Velocidad (Vel.)</b>, del mayor al menor.</p>
+                <ul style="font-size: 14px; margin-bottom: 0;">
+                    <li><b>Cambios Dinámicos:</b> Si la Vel. de alguien sube o baja a mitad del combate, el orden de los turnos se reajusta inmediatamente para la siguiente ronda.</li>
+                    <li><b>Desempate (Tirada de Iniciativa):</b> Si dos o más combatientes tienen exactamente la misma Velocidad (ej. ambos tienen 3 Vel.), deben tirar <b>1d6</b>. El que saque el número más alto atacará primero entre ellos.</li>
+                    <li><b>Prioridad Mágica:</b> Movimientos como <i>Canto Helado</i> o <i>Acua Jet</i> ignoran la Velocidad general y atacan antes que nadie.</li>
+                </ul>
+            </div>
+
+            <h2 style="color: #8b0000; border-bottom: 2px solid #8b0000;">Estados Alterados</h2>
+            <div class="cuadricula-menu">
+                <div style="background: rgba(139, 0, 0, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #8b0000;">
+                    <h3 style="color: #8b0000; margin-top: 0; border: none; padding: 0;">🔥 Quemado</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Pierdes -1 HP al final de cada turno. Además, el daño de tus ataques Físicos (Atq.) suele reducirse o verse penalizado.</p>
+                </div>
+                <div style="background: rgba(75, 0, 130, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #4b0082;">
+                    <h3 style="color: #4b0082; margin-top: 0; border: none; padding: 0;">☠️ Envenenado</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Pierdes HP progresivamente en cada turno. Si te vuelven a envenenar estando ya afectado, se convierte en <b>Envenenamiento Grave</b> y el daño por turno se acumula.</p>
+                </div>
+                <div style="background: rgba(218, 165, 32, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #daa520;">
+                    <h3 style="color: #b8860b; margin-top: 0; border: none; padding: 0;">⚡ Paralizado</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Tus músculos se contraen. Para poder atacar en tu turno, debes superar una tirada de salvación con 1d20 según la dificultad del ataque que te paralizó.</p>
+                </div>
+                <div style="background: rgba(0, 191, 255, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #00bfff;">
+                    <h3 style="color: #008b8b; margin-top: 0; border: none; padding: 0;">❄️ Congelado</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Bloqueado en el hielo. No puedes moverte. En tu turno debes tirar 1d20 y sacar una puntuación alta (ej. 15+) para romper el hielo, o recibir un ataque de tipo Fuego.</p>
+                </div>
+                <div style="background: rgba(105, 105, 105, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #696969;">
+                    <h3 style="color: #2f4f4f; margin-top: 0; border: none; padding: 0;">💤 Dormido</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Mente inactiva. Debes superar una tirada de 1d20 en tu turno para despertar, o esperar a que se acaben los turnos del hechizo que te durmió.</p>
+                </div>
+                <div style="background: rgba(255, 105, 180, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #ff1493;">
+                    <h3 style="color: #c71585; margin-top: 0; border: none; padding: 0;">💫 Confuso</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Alucinaciones y mareo. En tu turno tiras 1d20; si fallas la dificultad, te atacas a ti mismo (o a tus compañeros) usando tu propio stat ofensivo.</p>
+                </div>
+            </div>
+
+            <h2 style="color: #8b0000; margin-top: 40px; border-bottom: 2px solid #8b0000;">🌤️ Efectos de Clima</h2>
+            <div class="cuadricula-menu">
+                <div style="background: rgba(255, 69, 0, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #ff4500;">
+                    <h3 style="color: #ff4500; margin-top: 0; padding: 0; border: none;">☀️ Día Soleado</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Suma +2 de daño final a ataques tipo Fuego. El daño de ataques tipo Agua se reduce a la MITAD. Curaciones por luz (ej. Luz Lunar) curan el máximo siempre.</p>
+                </div>
+                <div style="background: rgba(30, 144, 255, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #1e90ff;">
+                    <h3 style="color: #1e90ff; margin-top: 0; padding: 0; border: none;">🌧️ Danza Lluvia</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Suma +2 de daño final a ataques tipo Agua. El daño de ataques tipo Fuego se reduce a la MITAD. Ataques eléctricos o de área son infalibles (no fallan).</p>
+                </div>
+                <div style="background: rgba(139, 69, 19, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #8b4513;">
+                    <h3 style="color: #8b4513; margin-top: 0; padding: 0; border: none;">🌪️ Tormenta de Arena</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Todos reciben -1 HP de daño al final del turno (excepto Roca, Tierra y Acero). Aumenta automáticamente en +1 la Def. Esp. de los Pokémon tipo Roca.</p>
+                </div>
+                <div style="background: rgba(0, 206, 209, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #00ced1;">
+                    <h3 style="color: #008b8b; margin-top: 0; padding: 0; border: none;">🌨️ Granizo</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">Todos reciben -1 HP de daño al final del turno (excepto los tipo Hielo). Las tormentas gélidas como Ventisca nunca fallan mientras el granizo caiga.</p>
+                </div>
+            </div>
+
+            <h2 style="color: #8b0000; margin-top: 40px; border-bottom: 2px solid #8b0000;">📖 Glosario de Combate</h2>
+            <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border: 1px solid #8b4513;">
+                <ul style="font-size: 14px; margin: 0; padding-left: 20px; line-height: 1.6;">
+                    <li><b style="color: #8b0000;">Daño de Retroceso:</b> Algunos ataques son tan violentos que lastiman al propio usuario por la inercia o la magia. Resta ese HP de tu propia vitalidad <i>después</i> de resolver tu golpe.</li>
+                    <li><b style="color: #32cd32;">20 Natural (Éxito Crítico):</b> Cuando tu dado d20 cae en 20 por sí solo. Suele activar los efectos máximos descritos en tus magias o ataques.</li>
+                    <li><b style="color: #ff4500;">1 (Pifia Crítica):</b> El peor resultado posible. El ataque no solo falla, sino que suele tener consecuencias negativas (como hacerte daño a ti mismo, romper tu guardia o perder tu turno).</li>
+                    <li><b style="color: #4b0082;">Límite de Mejoras:</b> Las bonificaciones que suben tus atributos (como Danza Espada o Corpulencia) se pueden acumular hasta un máximo de <b>+4</b> por estadística en un mismo combate.</li>
+                </ul>
+            </div>
+
+            <h2 style="color: #8b0000; margin-top: 40px; border-bottom: 2px solid #8b0000; text-align: center;">Tabla de Tipos Elementales</h2>
+            <p style="text-align: center; font-style: italic; color: #5c0000; margin-bottom: 25px;">Verifica estas reglas cuando uses la Calculadora de Combate.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-bottom: 40px;">
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #ff4500; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #ff4500; font-size: 18px; border-bottom: 1px dashed #ff4500; padding-bottom: 5px;">🔥 Fuego</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Planta, Bicho, Hielo, Acero</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Agua, Tierra, Roca</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #1e90ff; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #1e90ff; font-size: 18px; border-bottom: 1px dashed #1e90ff; padding-bottom: 5px;">💧 Agua</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Fuego, Tierra, Roca</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Planta, Eléctrico</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #228b22; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #228b22; font-size: 18px; border-bottom: 1px dashed #228b22; padding-bottom: 5px;">🌿 Planta</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Agua, Tierra, Roca</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Fuego, Hielo, Veneno, Volador, Bicho</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #daa520; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #daa520; font-size: 18px; border-bottom: 1px dashed #daa520; padding-bottom: 5px;">⚡ Eléctrico</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Agua, Volador</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Tierra (Inmune)</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #808080; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #696969; font-size: 18px; border-bottom: 1px dashed #808080; padding-bottom: 5px;">⚪ Normal</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Ninguno</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Lucha</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Fantasma</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #8b0000; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #8b0000; font-size: 18px; border-bottom: 1px dashed #8b0000; padding-bottom: 5px;">🥊 Lucha</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Normal, Hielo, Roca, Siniestro, Acero</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Volador, Psíquico, Hada</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Fantasma</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #4682b4; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #4682b4; font-size: 18px; border-bottom: 1px dashed #4682b4; padding-bottom: 5px;">🦅 Volador</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Planta, Lucha, Bicho</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Eléctrico, Hielo, Roca</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Tierra</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #800080; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #800080; font-size: 18px; border-bottom: 1px dashed #800080; padding-bottom: 5px;">☠️ Veneno</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Planta, Hada</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Tierra, Psíquico</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inútil contra:</b> Acero</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #8b4513; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #8b4513; font-size: 18px; border-bottom: 1px dashed #8b4513; padding-bottom: 5px;">🪨 Tierra</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Fuego, Eléctrico, Veneno, Roca, Acero</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Agua, Planta, Hielo</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inútil contra:</b> Volador</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #a0522d; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #a0522d; font-size: 18px; border-bottom: 1px dashed #a0522d; padding-bottom: 5px;">⛰️ Roca</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Fuego, Hielo, Volador, Bicho</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Agua, Planta, Lucha, Tierra, Acero</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #6b8e23; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #6b8e23; font-size: 18px; border-bottom: 1px dashed #6b8e23; padding-bottom: 5px;">🐛 Bicho</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Planta, Psíquico, Siniestro</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Fuego, Volador, Roca</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #4b0082; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #4b0082; font-size: 18px; border-bottom: 1px dashed #4b0082; padding-bottom: 5px;">👻 Fantasma</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Psíquico, Fantasma</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Fantasma, Siniestro</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Normal, Lucha</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #708090; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #708090; font-size: 18px; border-bottom: 1px dashed #708090; padding-bottom: 5px;">⚙️ Acero</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Hielo, Roca, Hada</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Fuego, Lucha, Tierra</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Veneno</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #00ced1; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #00ced1; font-size: 18px; border-bottom: 1px dashed #00ced1; padding-bottom: 5px;">❄️ Hielo</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Planta, Tierra, Volador, Dragón</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Fuego, Lucha, Roca, Acero</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #0000cd; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #0000cd; font-size: 18px; border-bottom: 1px dashed #0000cd; padding-bottom: 5px;">🐉 Dragón</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Dragón</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Hielo, Dragón</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inútil contra:</b> Hada</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #2f4f4f; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #2f4f4f; font-size: 18px; border-bottom: 1px dashed #2f4f4f; padding-bottom: 5px;">🌙 Siniestro</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Psíquico, Fantasma</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Lucha, Bicho, Hada</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Psíquico</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #ff1493; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #ff1493; font-size: 18px; border-bottom: 1px dashed #ff1493; padding-bottom: 5px;">✨ Hada</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Lucha, Dragón, Siniestro</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Veneno, Acero</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inmune a:</b> Dragón</p>
+                </div>
+                <div style="background: #fffaf0; padding: 15px; border-radius: 8px; border-left: 6px solid #c71585; box-shadow: 0 3px 6px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 0 0 10px 0; color: #c71585; font-size: 18px; border-bottom: 1px dashed #c71585; padding-bottom: 5px;">🔮 Psíquico</h3>
+                    <p style="margin: 5px 0; font-size: 14px; color: #3e2723;"><b>⚔️ Fuerte contra:</b> Lucha, Veneno</p>
+                    <p style="margin: 5px 0; font-size: 14px; color: #5c0000;"><b>🛡️ Débil a:</b> Bicho, Fantasma, Siniestro</p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #8b0000; font-style: italic;"><b>🚫 Inútil contra:</b> Siniestro</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="pantallaTienda" class="pantalla" style="display: none; width: 100%; max-width: 900px; margin: 0 auto; text-align: center;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h1 style="color: #8b4513; font-size: 32px; margin-top: 10px;">🏪 Cantina y Tienda del Gremio</h1>
+            
+            <div style="background: #fffaf0; border: 4px solid #8b4513; border-radius: 10px; padding: 20px; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 20px; position: relative;">
+                <div id="iconoTendero" style="width: 120px; height: 120px; min-width: 120px; flex-shrink: 0; background: #e0d8c3; border-radius: 50%; border: 3px solid #8b4513; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 50px;">
+                    🦈
+                </div>
+                <div style="text-align: left; flex-grow: 1;">
+                    <h2 id="nombreTendero" style="margin: 0; color: #8b0000; font-size: 24px;">Landhai</h2>
+                    <p id="dialogoTendero" style="font-style: italic; color: #5c0000; margin: 5px 0;">"¡Bienvenidos al gremio! ¿Qué van a ordenar hoy? Tenemos objetos, ingredientes y mis mejores platillos."</p>
+                    <button id="btnReclutar" class="btn-pequeno" style="background-color: #27408b; border-color: #1a2b5c; margin-top: 10px; color: white;" onclick="intentarReclutar()">🗣️ Invitar al Equipo</button>
+                    <button id="btnRegresar" class="btn-pequeno" style="background-color: #228b22; border-color: #006400; margin-top: 10px; color: white; display: none;" onclick="regresarLandhai()">🔙 Landhai regresa al Gremio</button>
+                </div>
+            </div>
+
+            <div style="background: rgba(210, 105, 30, 0.1); border: 2px dashed #d2691e; border-radius: 10px; padding: 40px; margin-top: 20px;">
+                <div style="background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; border: 2px solid #8b6508;">
+                    <label style="font-weight: bold; color: #8b0000; font-size: 16px;">¿Quién va a pagar?: </label>
+                    <select id="selectorComprador" style="padding: 8px; font-size: 16px; border-radius: 5px; border: 1px solid #8b4513; width: 60%; max-width: 300px; font-family: 'Georgia';">
+                        <option value="-1">Nadie (Selecciona un héroe)</option>
+                    </select>
+                    <span id="dineroComprador" style="font-weight: bold; color: #b8860b; margin-left: 10px; font-size: 16px;">💰 0 Poke's</span>
+                </div>
+
+                <h3 style="color: #1e7d1e; text-align: left; border-bottom: 2px solid #32cd32; margin-top: 30px;">🧪 Consumibles y Objetos</h3>
+                <div id="tiendaConsumibles" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; text-align: left; margin-bottom: 30px;"></div>
+
+                <h3 style="color: #4682b4; text-align: left; border-bottom: 2px solid #4682b4;">🛡️ Armería y Reliquias</h3>
+                <div id="tiendaEquipo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; text-align: left; margin-bottom: 30px;"></div>
+                    </div>
+
+                <h3 style="color: #d2691e; text-align: left; border-bottom: 2px solid #8b4513;">🍲 Menú Especial de Landhai</h3>
+                <p style="font-size: 13px; color: #5c0000; text-align: left; margin-top: -10px;">¡Se agotan rápido! El catálogo cambia automáticamente cada 30 minutos.</p>
+                <div id="tiendaRecetas" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; text-align: left;">
+                    </div>
+                
+                <div style="margin-top: 40px; text-align: center; border-top: 1px dashed #8b4513; padding-top: 20px;">
+                    <button class="btn-pequeno" style="background-color: #8b0000; border-color: #5c0000; color: white;" onclick="forzarReabastecimiento()">🔄 GM: Forzar Reabastecimiento Ahora</button>
+                    <p style="font-size: 11px; color: #5c0000; margin: 0;">(Usa este botón para probar si cambia el catálogo sin tener que esperar 30 Minutos).</p>
+                </div>
+            </div>
+
+        <div id="pantallaAliados" class="pantalla" style="display: none; width: 100%; max-width: 900px; margin: 0 auto; text-align: center;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h1 style="color: #27408b; font-size: 32px; margin-top: 10px;">🗺️ Mapa y Reclutamiento</h1>
+            <p style="font-style: italic; color: #5c0000;">Revisa el mapa del mundo o elige un compañero para tu próxima misión.</p>
+            
+            <div style="background: #f0f8ff; border: 2px dashed #4682b4; border-radius: 10px; padding: 40px; margin-top: 20px;">
+                <h2 style="color: #27408b;">Mesa de Estrategia en construcción 🚧</h2>
+                <p>Aquí pondremos el visor gigante del mapa interactivo y las tarjetas de los Pokémon prestados.</p>
+            </div>
+        </div>
+
+        <div id="pantallaCampamento" class="pantalla" style="display: none;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h2>⛺ El Campamento</h2>
+            <p style="text-align: center; font-style: italic;">Sube los archivos .json de tu equipo para verlos aquí.</p>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <label for="subirJson" style="cursor: pointer; background-color: #8b4513; color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-block;">
+                    📂 Cargar Personajes (.json)
+                </label>
+                <input type="file" id="subirJson" accept=".json" multiple style="display: none;" onchange="cargarPersonajesJSON(event)">
+            </div>
+
+            <div id="cuadriculaCampamento" class="cuadricula-menu">
+            </div>
+        </div>
+
+       <div id="pantallaVistaPersonaje" class="pantalla" style="display: none;">
+            <h2>Ficha del Personaje</h2>
+            <div class="layout-principal">
+                <div class="columna-izquierda" style="text-align: center;">
+                    <div class="marco-foto" style="margin: 0 auto 10px auto;"><img id="vistaImg" src=""></div>
+                    <h2 id="vistaNombre" style="margin-bottom: 0; border: none; padding: 0;">Nombre</h2>
+                    <span id="vistaEspecie" style="font-style: italic; color: #5c0000;">Especie</span>
+                    
+                    <div class="etiqueta-barra" style="margin-top: 20px;">
+                        <span>HP</span>
+                        <div>
+                            <button class="btn-mini" onclick="modificarBarra('hp', -1)">-</button>
+                            <span id="vistaTextoHP" style="margin: 0 10px; display: inline-block; min-width: 50px;"></span>
+                            <button class="btn-mini" onclick="modificarBarra('hp', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="barra-fondo"><div id="vistaBarraHP" class="barra-relleno color-hp"></div></div>
+                    
+                    <div class="etiqueta-barra">
+                        <span>PP</span>
+                        <div>
+                            <button class="btn-mini" style="background-color: #1e90ff; border-color: #00008b;" onclick="modificarBarra('pp', -1)">-</button>
+                            <span id="vistaTextoPP" style="margin: 0 10px; display: inline-block; min-width: 50px;"></span>
+                            <button class="btn-mini" style="background-color: #1e90ff; border-color: #00008b;" onclick="modificarBarra('pp', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="barra-fondo"><div id="vistaBarraPP" class="barra-relleno color-pp"></div></div>
+
+                    <div class="etiqueta-barra" style="margin-top: 15px;">
+                        <span>EXP</span>
+                        <span id="vistaTextoEXP" style="margin: 0 10px; font-size: 13px; color: #d4af37; font-weight: bold;">0 / 100</span>
+                    </div>
+                    <div class="barra-fondo" style="height: 12px; border-color: #8b6508;"><div id="vistaBarraEXP" class="barra-relleno" style="background-color: #d4af37; width: 0%;"></div></div>
+
+                    <div class="area-grafica" style="margin-top: 20px;"><canvas id="graficaRadarVista"></canvas></div>
+
+                </div>
+                <div class="columna-derecha">
+                    <h3>Habilidades</h3><ul id="vistaHabilidades" class="lista-resumen"></ul>
+                    <h3>Ataques</h3><ul id="vistaAtaques" class="lista-resumen"></ul>
+                    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                        Inventario
+                        <button class="btn-mini" style="font-size: 12px !important; background-color: #8b6508; border-color: #5c4305; margin: 0 !important;" onclick="abrirBaul()">🧰 Abrir Baúl</button>
+                    </h3>
+                    <ul id="vistaObjetos" class="lista-resumen"></ul>
+                </div>
+            </div>
+            <div class="contenedor-botones" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 20px;">
+                <button class="btn-secundario" style="font-size: 14px;" onclick="cambiarPantalla('pantallaCampamento')">⬅ Volver</button>
+                <button style="background-color: #2c1a0f; border-color: #1a0f09; box-shadow: 3px 3px 0px #1a0f09; font-size: 14px;" onclick="abrirModalHistoria()">📜 Historia y Lore</button>
+                <button style="background-color: #4b0082; border-color: #290048; box-shadow: 3px 3px 0px #290048; font-size: 14px;" onclick="abrirModalEditar()">✏️ Editar Textos</button>
+                <button style="background-color: #d4af37; border-color: #8b6508; color: #3e2723; font-size: 14px;" onclick="abrirModalMejoras()">✨ Nivel y Botín</button>
+                <button style="background-color: #2f4f4f; border-color: #1a2b2b; box-shadow: 3px 3px 0px #1a2b2b; font-size: 14px;" onclick="sobrescribirPersonaje()">💾 Guardar Archivo</button>
+            </div>
+        </div>
+
+        <div id="pantallaMovimientos" class="pantalla" style="display: none; width: 100%; max-width: 900px; margin: 0 auto;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h1 style="margin-top: 0; font-size: 28px;">📖 Enciclopedia del Mundo</h1>
+            
+            <div style="background-color: rgba(139, 69, 19, 0.1); padding: 15px; border-radius: 8px; border: 2px dashed #8b4513; margin-bottom: 25px; text-align: center;">
+                
+                <div style="margin-bottom: 15px;">
+                    <button class="btn-pequeno" style="background-color: #2f4f4f; border-color: #1a2b2b; margin: 0 5px;" onclick="descargarCompendio()">💾 Guardar Enciclopedia (.json)</button>
+                    <button class="btn-usar" style="background-color: #2e8b57; border-color: #006400;" onclick="cargarCompendio()">📂 Cargar Enciclopedia (.js)</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px;">
+                    <input type="text" id="buscadorCompendio" placeholder="🔍 Buscar por palabra..." style="font-size: 16px; padding: 10px; max-width: 250px; text-align: center;" onkeyup="filtrarCompendio()">
+                    
+                    <select id="filtroCategoria" style="font-size: 16px; padding: 10px; font-family: 'Georgia'; border: 1px solid #8b4513; border-radius: 4px; color: #8b0000; font-weight: bold; cursor: pointer;" onchange="filtrarCompendio()">
+                        <option value="todos">📚 Todos los Catálogos</option>
+                        <option value="tecnica_sin_pp">👊 Técnicas Sin PP</option>
+                        <option value="arma">🗡️ Armas</option>
+                        <option value="armadura">🛡️ Armaduras</option>
+                        <option value="magia">✨ Magias / Mov. Pokémon</option>
+                        <option value="tecnica_con_pp">🌀 Técnicas Con PP / Mov. Estado</option>
+                        <option value="consumible">🧪 Consumibles y Pociones</option>
+                        <option value="receta">🍲 Recetas Culinarias</option>
+                        <option value="reliquia">🏺 Reliquias</option>
+                    </select>
+
+                    <select id="filtroElemento" style="font-size: 16px; padding: 10px; font-family: 'Georgia'; border: 1px solid #8b4513; border-radius: 4px; font-weight: bold; cursor: pointer; background-color: #fffaf0;" onchange="filtrarCompendio()">
+                        <option value="todos" style="color: #8b0000;">🌟 Todos los Tipos</option>
+                        <option value="normal" style="color: #696969;">⚪ Normal</option>
+                        <option value="fuego" style="color: #ff4500;">🔥 Fuego</option>
+                        <option value="agua" style="color: #1e90ff;">💧 Agua</option>
+                        <option value="planta" style="color: #228b22;">🌿 Planta</option>
+                        <option value="eléctrico" style="color: #daa520;">⚡ Eléctrico</option>
+                        <option value="hielo" style="color: #00ced1;">❄️ Hielo</option>
+                        <option value="lucha" style="color: #8b0000;">🥊 Lucha</option>
+                        <option value="veneno" style="color: #800080;">☠️ Veneno</option>
+                        <option value="tierra" style="color: #8b4513;">🪨 Tierra</option>
+                        <option value="volador" style="color: #4682b4;">🦅 Volador</option>
+                        <option value="psíquico" style="color: #c71585;">🔮 Psíquico</option>
+                        <option value="bicho" style="color: #6b8e23;">🐛 Bicho</option>
+                        <option value="roca" style="color: #a0522d;">⛰️ Roca</option>
+                        <option value="fantasma" style="color: #4b0082;">👻 Fantasma</option>
+                        <option value="acero" style="color: #708090;">⚙️ Acero</option>
+                        <option value="siniestro" style="color: #2f4f4f;">🌙 Siniestro</option>
+                        <option value="dragón" style="color: #0000cd;">🐉 Dragón</option>
+                        <option value="hada" style="color: #ff1493;">✨ Hada</option>
+                        <option value="astral" style="color: #483d8b;">🌌 Astral</option>
+                        <option value="cuerpo a cuerpo" style="color: #8b0000;">⚔️ Cuerpo a Cuerpo</option>
+                        <option value="distancia o rango" style="color: #2e8b57;">🏹 Distancia o Rango</option>
+                        <option value="ligera" style="color: #a9a9a9;">🪶 Ligera</option>
+                        <option value="media" style="color: #808080;">🛡️ Media</option>
+                        <option value="pesada" style="color: #696969;">🧱 Pesada</option>
+                        <option value="curación" style="color: #ff69b4;">💖 Curación</option>
+                        <option value="soporte" style="color: #32cd32;">🤝 Soporte</option>
+                    </select>
+
+                    <select id="filtroNivel" style="font-size: 16px; padding: 10px; font-family: 'Georgia'; border: 1px solid #8b4513; border-radius: 4px; font-weight: bold; cursor: pointer; background-color: #fffaf0;" onchange="filtrarCompendio()">
+                        <option value="todos" style="color: #8b0000;">⭐ Todos los Niveles</option>
+                        <option value="1">🟢 Nivel 1 (Básico)</option>
+                        <option value="2">🔵 Nivel 2 (Avanzado)</option>
+                        <option value="3">🟣 Nivel 3 (Experto)</option>
+                        <option value="4">🟠 Único (Legendario)</option>
+                    </select>
+                </div>
+                
+                <button class="btn-mini" style="background-color: #d4af37; border-color: #8b6508; color: #3e2723; padding: 8px 15px !important;" onclick="abrirModalCompendio(-1)">➕ Forjar Nuevo Registro</button>
+            </div>
+
+            <div id="contenedorCompendio" style="width: 100%;"></div>
+        </div>
+
+        <div id="pantallaStats" class="pantalla" style="display: none;">
+            <button class="btn-pequeno" onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al Menú</button>
+            <h1 style="margin-top: 0;">Registro de Héroes</h1>
+            <div class="layout-principal">
+                <div class="columna-izquierda">
+                    <div class="seccion-foto">
+                        <div class="marco-foto"><img id="imagenPersonaje" src="https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?" alt="Retrato"></div>
+                        <input type="file" id="subirFoto" accept="image/*" onchange="cargarFoto(event)">
+                        <div id="panelAjusteFoto" style="display: none; width: 100%; margin-top: 15px;">
+                            <label style="font-size: 12px; margin-top: 0; text-align: center;">🔍 Zoom</label>
+                            <input type="range" id="zoomFoto" min="1" max="3" step="0.1" value="1" oninput="ajustarFoto()">
+                            <label style="font-size: 12px; margin-top: 5px; text-align: center;">↔️ X</label>
+                            <input type="range" id="xFoto" min="0" max="100" value="50" oninput="ajustarFoto()">
+                            <label style="font-size: 12px; margin-top: 5px; text-align: center;">↕️ Y</label>
+                            <input type="range" id="yFoto" min="0" max="100" value="50" oninput="ajustarFoto()">
+                        </div>
+                    </div>
+                    
+                    <div class="cuadricula-stats">
+                        <div><label>Nombre:</label><input type="text" id="nombreInput"></div>
+                        <div><label>Especie:</label><input type="text" id="especieInput"></div>
+                    </div>
+
+                    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                        Vitalidad y Nivel
+                        <span style="background: #d4af37; color: #3e2723; padding: 3px 10px; border-radius: 5px; font-size: 14px;">Lvl: <input type="number" id="lvlInput" value="1" disabled style="width: 40px; background: transparent; border: none; font-size: 16px; padding: 0; color: #3e2723; text-align: center;"></span>
+                    </h3>
+                    <div class="cuadricula-stats">
+                        <div><label>HP Máximo:</label><input type="number" id="hpInput" value="40" min="0"></div>
+                        <div><label>PP Máximo:</label><input type="number" id="ppInput" value="15" min="0"></div>
+                    </div>
+                    <div class="etiqueta-barra"><span>HP</span><span id="textoHP">40 / 100</span></div>
+                    <div class="barra-fondo"><div id="barraHP" class="barra-relleno color-hp" style="width: 40%;"></div></div>
+                    
+                    <div class="etiqueta-barra"><span>PP</span><span id="textoPP">15 / 30</span></div>
+                    <div class="barra-fondo"><div id="barraPP" class="barra-relleno color-pp" style="width: 50%;"></div></div>
+                    
+                    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                        Atributos Base
+                        <span id="contadorPuntos" style="font-size: 14px; background: #8b0000; color: white; padding: 3px 8px; border-radius: 5px;">Puntos Disponibles: 8</span>
+                    </h3>
+                    <p style="font-size: 11px; color: #5c0000; text-align: center; margin-top: 0;">(Si bajas un atributo a números negativos, ganarás puntos extra. Máximo 8, Mínimo -5).</p>
+                    <div class="cuadricula-stats">
+                        <div><label>Atq:</label><input type="number" id="atqInput" value="0" min="-5" max="8"></div><div><label>Def:</label><input type="number" id="defInput" value="0" min="-5" max="8"></div>
+                        <div><label>Atq. Esp:</label><input type="number" id="atqEspInput" value="0" min="-5" max="8"></div><div><label>Def. Esp:</label><input type="number" id="defEspInput" value="0" min="-5" max="8"></div>
+                        <div><label>Vel:</label><input type="number" id="velInput" value="0" min="-5" max="8"></div><div><label>C.I.:</label><input type="number" id="ciInput" value="0" min="-5" max="8"></div>
+                    </div>
+                    <div class="area-grafica"><canvas id="graficaRadar"></canvas></div>
+                </div>
+                <div class="columna-derecha">
+                    <h3>Habilidades (Pasivas)</h3>
+                    <div class="grupo-ataque"><input type="text" id="habilidad1Nombre"><textarea id="habilidad1Desc"></textarea></div><div class="grupo-ataque"><input type="text" id="habilidad2Nombre"><textarea id="habilidad2Desc"></textarea></div>
+                    <h3>Ataques Básicos (Sin PP)</h3>
+                    <div class="grupo-ataque"><input type="text" id="ataque1Nombre"><textarea id="ataque1Desc"></textarea></div><div class="grupo-ataque"><input type="text" id="ataque2Nombre"><textarea id="ataque2Desc"></textarea></div>
+                    <h3>Equipamiento (Máx 3)</h3>
+                    <div class="grupo-equipo"><input type="text" id="equipo1Nombre"><textarea id="equipo1Desc"></textarea></div><div class="grupo-equipo"><input type="text" id="equipo2Nombre"><textarea id="equipo2Desc"></textarea></div><div class="grupo-equipo"><input type="text" id="equipo3Nombre"><textarea id="equipo3Desc"></textarea></div>
+                    <h3>Inventario (Máx 5)</h3>
+                    <div><input type="text" id="obj1"></div><div><input type="text" id="obj2"></div><div><input type="text" id="obj3"></div><div><input type="text" id="obj4"></div><div><input type="text" id="obj5"></div>
+                </div>
+            </div> 
+            <button onclick="cambiarPantalla('pantallaHistoria')">Siguiente: Historia ➔</button>
+        </div>
+
+        <div id="pantallaHistoria" class="pantalla" style="display: none;">
+            <h2>Trasfondo</h2>
+            <label>Título:</label><input type="text" id="tituloHistoria">
+            <label>Historia:</label><textarea id="textoHistoria" style="min-height: 150px;"></textarea>
+            <h3>Objetivos (Máx 3)</h3>
+            <div class="cuadricula-objetivos">
+                <div class="seccion-objetivo"><div class="marco-objetivo"><img id="imgObj1" src="https://via.placeholder.com/200/e0d8c3/8b4513"></div><input type="file" accept="image/*" onchange="cargarFotoObjetivo(event, 1)"><input type="text" id="nombreObj1"></div>
+                <div class="seccion-objetivo"><div class="marco-objetivo"><img id="imgObj2" src="https://via.placeholder.com/200/e0d8c3/8b4513"></div><input type="file" accept="image/*" onchange="cargarFotoObjetivo(event, 2)"><input type="text" id="nombreObj2"></div>
+                <div class="seccion-objetivo"><div class="marco-objetivo"><img id="imgObj3" src="https://via.placeholder.com/200/e0d8c3/8b4513"></div><input type="file" accept="image/*" onchange="cargarFotoObjetivo(event, 3)"><input type="text" id="nombreObj3"></div>
+            </div>
+            <div class="contenedor-botones"><button class="btn-secundario" onclick="cambiarPantalla('pantallaStats')">⬅ Volver</button><button onclick="prepararResumen()">Resumen ➔</button></div>
+        </div>
+
+        <div id="pantallaResumen" class="pantalla" style="display: none;">
+            <h2>Resumen</h2>
+            <div class="layout-principal">
+                <div class="columna-izquierda" style="text-align: center;">
+                    <div class="marco-foto" style="margin: 0 auto 10px auto;"><img id="imgResumen" src=""></div>
+                    <h2 id="resumenNombre">Nombre</h2><span id="resumenEspecie">Especie</span>
+                    <div class="etiqueta-barra" style="margin-top: 20px;"><span>HP</span><span id="resumenTextoHP"></span></div><div class="barra-fondo"><div id="resumenBarraHP" class="barra-relleno color-hp"></div></div>
+                    <div class="etiqueta-barra"><span>PP</span><span id="resumenTextoPP"></span></div><div class="barra-fondo"><div id="resumenBarraPP" class="barra-relleno color-pp"></div></div>
+                    <div class="area-grafica"><canvas id="graficaRadarResumen"></canvas></div>
+                </div>
+                <div class="columna-derecha">
+                    <h3>Habilidades</h3><ul id="listaHabilidades" class="lista-resumen"></ul>
+                    <h3>Ataques</h3><ul id="listaAtaques" class="lista-resumen"></ul>
+                    <h3>Inventario</h3><ul id="listaObjetos" class="lista-resumen"></ul>
+                </div>
+            </div>
+            <div class="contenedor-botones"><button class="btn-secundario" onclick="cambiarPantalla('pantallaHistoria')">⬅ Corregir</button><button onclick="guardarPersonaje()">💾 Guardar JSON</button></div>
+        </div>
+    </div>
+    
+    <div id="modalEditar" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: #fdf5e6; padding: 25px; border: 4px solid #8b4513; border-radius: 10px; width: 90%; max-width: 450px; box-shadow: 0px 0px 20px rgba(0,0,0,0.8); max-height: 85vh; overflow-y: auto;">
+                <h2 style="color: #4b0082; text-align: center; margin-top: 0; border-bottom: 2px dashed #4b0082; padding-bottom: 10px;">Editar Magias y Habilidades</h2>
+
+                <h3 style="font-size: 16px; color: #8b0000;">Habilidades Pasivas</h3>
+                <input type="text" id="editHab1Nom" placeholder="Nombre Habilidad 1" style="margin-bottom: 5px;">
+                <textarea id="editHab1Desc" placeholder="Descripción..."></textarea>
+                
+                <input type="text" id="editHab2Nom" placeholder="Nombre Habilidad 2" style="margin-bottom: 5px; margin-top: 10px;">
+                <textarea id="editHab2Desc" placeholder="Descripción..."></textarea>
+                
+                <input type="text" id="editHab3Nom" placeholder="Nombre Habilidad 3 (Extra)" style="margin-bottom: 5px; margin-top: 10px;">
+                <textarea id="editHab3Desc" placeholder="Descripción..."></textarea>
+
+                <h3 style="font-size: 16px; color: #8b0000; margin-top: 20px;">Ataques</h3>
+                <input type="text" id="editAtq1Nom" placeholder="Nombre Ataque 1" style="margin-bottom: 5px;">
+                <textarea id="editAtq1Desc" placeholder="Descripción..."></textarea>
+                
+                <input type="text" id="editAtq2Nom" placeholder="Nombre Ataque 2" style="margin-bottom: 5px; margin-top: 10px;">
+                <textarea id="editAtq2Desc" placeholder="Descripción..."></textarea>
+                
+                <input type="text" id="editAtq3Nom" placeholder="Nombre Ataque 3 (Extra)" style="margin-bottom: 5px; margin-top: 10px;">
+                <textarea id="editAtq3Desc" placeholder="Descripción..."></textarea>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;">
+                    <button class="btn-secundario" style="margin-top: 0;" onclick="cerrarModalEditar()">Cancelar</button>
+                    <button style="background-color: #4b0082; border-color: #290048; color: white; margin-top: 0;" onclick="guardarEdicion()">Actualizar Textos</button>
+                </div>
+            </div>
+        </div>
+
+    <div id="modalMejoras" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: #fdf5e6; padding: 25px; border: 4px solid #8b4513; border-radius: 10px; width: 90%; max-width: 350px; box-shadow: 0px 0px 20px rgba(0,0,0,0.8); max-height: 85vh; overflow-y: auto;">
+                <h2 style="color: #8b0000; text-align: center; margin-top: 0; border-bottom: 2px dashed #8b4513; padding-bottom: 10px;">Recompensas</h2>
+                
+                <h3 style="font-size: 16px;">Progreso y Atributos (+ Puntos)</h3>
+                <div style="background: rgba(212, 175, 55, 0.3); padding: 10px; border-radius: 5px; border: 1px solid #d4af37; text-align: center; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: flex-end;">
+                    <div>
+                        <label style="color: #8b0000; margin-top: 0; font-size: 14px;">✨ Dar EXP:</label>
+                        <input type="number" id="addExp" value="0" style="width: 100%; text-align: center; font-size: 16px;">
+                    </div>
+                    <div>
+                        <label style="color: #8b0000; margin-top: 0; font-size: 14px;">⭐ Forzar Lvl:</label>
+                        <input type="number" id="addLvl" value="0" style="width: 100%; text-align: center; font-size: 16px;">
+                    </div>
+                    <div>
+                        <label style="color: #8b4513; margin-top: 0; font-size: 14px;">💰 Poke's (+/-):</label>
+                        <input type="number" id="addDinero" value="0" style="width: 100%; text-align: center; font-size: 16px;">
+                    </div>
+                </div>
+
+                <h3 style="font-size: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; margin-top: 20px;">
+                    Mejorar Atributos
+                    <span id="puntosMejora" style="font-size: 14px; background: #8b0000; color: white; padding: 3px 8px; border-radius: 5px;">Puntos: 0</span>
+                </h3>
+                <p style="font-size: 11px; color: #5c0000; text-align: center; margin-top: 0; margin-bottom: 10px;">(Solo puedes gastar los puntos que ganes al subir de nivel)</p>
+                <div class="cuadricula-stats">
+                    <div><label>Max HP:</label><input type="number" id="addHpMax" value="0"></div>
+                    <div><label>Max PP:</label><input type="number" id="addPpMax" value="0"></div>
+                    <div><label>Atq:</label><input type="number" id="addAtq" value="0" min="0" oninput="calcularPuntosMejora()"></div>
+                    <div><label>Def:</label><input type="number" id="addDef" value="0" min="0" oninput="calcularPuntosMejora()"></div>
+                    <div><label>Atq. Esp:</label><input type="number" id="addAtqEsp" value="0" min="0" oninput="calcularPuntosMejora()"></div>
+                    <div><label>Def. Esp:</label><input type="number" id="addDefEsp" value="0" min="0" oninput="calcularPuntosMejora()"></div>
+                    <div><label>Vel:</label><input type="number" id="addVel" value="0" min="0" oninput="calcularPuntosMejora()"></div>
+                    <div><label>C.I.:</label><input type="number" id="addCi" value="0" min="0" oninput="calcularPuntosMejora()"></div>
+                </div>
+
+                <h3 style="font-size: 16px; border-bottom: 1px dashed #8b4513; padding-bottom: 5px;">🎒 Dar Objeto del Compendio</h3>
+                <p style="font-size: 11px; color: #5c0000; margin-top: -5px; margin-bottom: 10px;">(Selecciona un objeto de tu Enciclopedia. Se enviará a los bolsillos o a la reserva si no hay espacio).</p>
+                <select id="selectorNuevoObjeto" style="width: 100%; padding: 8px; font-family: 'Georgia'; margin-bottom: 10px; border: 1px solid #8b4513; border-radius: 4px; background: #fffaf0; font-weight: bold; color: #8b0000;">
+                    <option value="">-- Elige un objeto --</option>
+                </select>
+                    <button class="btn-secundario" style="margin-top: 0;" onclick="cerrarModalMejoras()">Cancelar</button>
+                    <button style="background-color: #32cd32; border-color: #1e7d1e; color: white; margin-top: 0;" onclick="aplicarMejoras()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modalCompendio" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: #fdf5e6; padding: 25px; border: 4px solid #8b4513; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0px 0px 20px rgba(0,0,0,0.8);">
+                <h2 id="tituloModalCompendio" style="color: #8b0000; text-align: center; margin-top: 0; border-bottom: 2px dashed #8b4513; padding-bottom: 10px;">Nuevo Registro</h2>
+                
+                <input type="hidden" id="editCompIndex" value="-1">
+
+                <label>Tipo de Registro (Catálogo Mayor):</label>
+                <select id="editCompTipo" style="width: 100%; padding: 8px; font-family: 'Georgia'; margin-bottom: 10px; border: 1px solid #8b4513; border-radius: 4px;">
+                    <option value="tecnica_sin_pp">👊 Técnica Sin PP</option>
+                    <option value="arma">🗡️ Arma</option>
+                    <option value="armadura">🛡️ Armadura</option>
+                    <option value="magia">✨ Magia / Movimiento Pokémon</option>
+                    <option value="tecnica_con_pp">🌀 Técnica Con PP / Mov. Estado</option>
+                    <option value="consumible">🧪 Consumible / Poción</option>
+                    <option value="receta">🍲 Receta Culinaria</option>
+                    <option value="reliquia">🏺 Reliquia</option>
+                </select>
+
+                <label>Elemento / Subcategoría (Catálogo Menor):</label>
+                <input type="text" id="editCompElemento" list="listaElementos" placeholder="Ej. Fuego, Agua, Ligera, Curación..." style="margin-bottom: 10px;">
+                <datalist id="listaElementos">
+                    <option value="Normal"><option value="Fuego"><option value="Agua"><option value="Planta"><option value="Eléctrico"><option value="Hielo"><option value="Lucha"><option value="Veneno"><option value="Tierra"><option value="Volador"><option value="Psíquico"><option value="Bicho"><option value="Roca"><option value="Fantasma"><option value="Acero"><option value="Siniestro"><option value="Dragón"><option value="Hada"><option value="Astral"><option value="Cuerpo a Cuerpo"><option value="Distancia o Rango"><option value="Ligera"><option value="Media"><option value="Pesada"><option value="Curación"><option value="Soporte">
+                </datalist>
+
+                <label>Nombre:</label>
+                <input type="text" id="editCompNombre" placeholder="Ej. Lanzallamas..." style="margin-bottom: 10px;">
+
+                <label>Nivel / Rareza del Registro:</label>
+                <select id="editCompNivel" style="width: 100%; padding: 8px; font-family: 'Georgia'; margin-bottom: 10px; border: 1px solid #8b4513; border-radius: 4px; font-weight: bold; background: #fffaf0;">
+                    <option value="1">🟢 Nivel 1 (Básico / Común)</option>
+                    <option value="2">🔵 Nivel 2 (Avanzado / Raro)</option>
+                    <option value="3">🟣 Nivel 3 (Experto / Épico)</option>
+                    <option value="4">🟠 Único (Maestro / Legendario)</option>
+                </select>
+
+                <label>Clasificación Especial (Opcional):</label>
+                <input type="text" id="editCompClasif" list="listaClasificaciones" placeholder="Ej. Prioridad, Clima, Mejora..." style="margin-bottom: 10px; border: 1px solid #8b4513; border-radius: 4px; padding: 8px; width: 100%; box-sizing: border-box; font-family: 'Georgia';">
+                <datalist id="listaClasificaciones">
+                    <option value="Prioridad"><option value="Control"><option value="Mejora">
+                    <option value="Clima"><option value="Curación"><option value="Protección">
+                </datalist>
+
+                <label>Subtítulo (Costo PP o Categoría):</label>
+                <input type="text" id="editCompSubtitulo" placeholder="Ej. 5 PP | Fuego..." style="margin-bottom: 10px;">
+
+                <label>Descripción / Reglas:</label>
+                <textarea id="editCompDesc" placeholder="Describe qué hace. Puedes usar 'Enter' para hacer listas y tablas..." style="min-height: 180px; white-space: pre-wrap;"></textarea>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;">
+                    <button class="btn-secundario" style="margin-top: 0;" onclick="cerrarModalCompendio()">Cancelar</button>
+                    <button style="background-color: #32cd32; border-color: #1e7d1e; color: white; margin-top: 0;" onclick="guardarItemCompendio()">💾 Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modalBaul" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: #fdf5e6; padding: 25px; border: 4px solid #8b4513; border-radius: 10px; width: 95%; max-width: 550px; box-shadow: 0px 0px 20px rgba(0,0,0,0.8); max-height: 85vh; overflow-y: auto;">
+                <h2 id="tituloModalBaul" style="color: #8b4513; text-align: center; margin-top: 0; border-bottom: 2px dashed #8b4513; padding-bottom: 10px;">🎒 Mochila Extra</h2>
+                <p style="text-align: center; font-style: italic; font-size: 14px; color: #5c0000;">Objetos de reserva (No se pueden usar en combate).</p>
+                
+                <ul id="listaObjetosBaul" class="lista-resumen" style="list-style: none; padding: 0;"></ul>
+                
+                <button class="btn-secundario" style="margin-top: 20px;" onclick="document.getElementById('modalBaul').style.display='none'">Cerrar Baúl</button>
+            </div>
+        </div>
+
+        <div id="modalHistoria" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: #fdf5e6; padding: 25px; border: 4px solid #8b4513; border-radius: 10px; width: 90%; max-width: 600px; box-shadow: 0px 0px 20px rgba(0,0,0,0.8); max-height: 85vh; overflow-y: auto;">
+                <h2 style="color: #2c1a0f; text-align: center; margin-top: 0; border-bottom: 2px dashed #8b4513; padding-bottom: 10px;">📜 Diario del Aventurero</h2>
+                
+                <label>Título / Origen:</label>
+                <input type="text" id="editHistTitulo" placeholder="Ej. El Exiliado de la Montaña..." style="margin-bottom: 10px;">
+
+                <label>Historia / Trasfondo:</label>
+                <textarea id="editHistTexto" placeholder="Escribe aquí el lore del personaje..." style="min-height: 140px; white-space: pre-wrap; margin-bottom: 15px;"></textarea>
+
+                <h3 style="font-size: 16px; color: #8b0000; margin-bottom: 10px;">Objetivos Principales / Misiones</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">
+                    <div>
+                        <img id="editHistImg1" src="" style="width: 100%; height: 80px; object-fit: cover; border: 2px solid #8b4513; border-radius: 5px; background: #2c1a0f; margin-bottom: 5px;">
+                        <input type="text" id="editHistObj1" placeholder="Misión 1" style="font-size: 12px; padding: 5px;">
+                        <input type="file" accept="image/*" onchange="cambiarFotoModal(event, 1)" style="font-size: 10px; margin-top: 5px; width: 100%;">
+                    </div>
+                    <div>
+                        <img id="editHistImg2" src="" style="width: 100%; height: 80px; object-fit: cover; border: 2px solid #8b4513; border-radius: 5px; background: #2c1a0f; margin-bottom: 5px;">
+                        <input type="text" id="editHistObj2" placeholder="Misión 2" style="font-size: 12px; padding: 5px;">
+                        <input type="file" accept="image/*" onchange="cambiarFotoModal(event, 2)" style="font-size: 10px; margin-top: 5px; width: 100%;">
+                    </div>
+                    <div>
+                        <img id="editHistImg3" src="" style="width: 100%; height: 80px; object-fit: cover; border: 2px solid #8b4513; border-radius: 5px; background: #2c1a0f; margin-bottom: 5px;">
+                        <input type="text" id="editHistObj3" placeholder="Misión 3" style="font-size: 12px; padding: 5px;">
+                        <input type="file" accept="image/*" onchange="cambiarFotoModal(event, 3)" style="font-size: 10px; margin-top: 5px; width: 100%;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;">
+                    <button class="btn-secundario" style="margin-top: 0;" onclick="document.getElementById('modalHistoria').style.display='none'">Cerrar Diario</button>
+                    <button style="background-color: #2c1a0f; border-color: #1a0f09; color: white; margin-top: 0;" onclick="guardarModalHistoria()">💾 Guardar Lore</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        // 1. NAVEGACIÓN DE PANTALLAS Y MÚSICA AMBIENTAL
+        function cambiarPantalla(pantallaDestino) {
+            try {
+                const pantallas = ['pantallaInicio', 'pantallaStats', 'pantallaHistoria', 'pantallaResumen', 'pantallaDados', 'pantallaCampamento', 'pantallaMovimientos', 'pantallaVistaPersonaje', 'pantallaInfo', 'pantallaTienda', 'pantallaAliados'];
+                
+                pantallas.forEach(p => {
+                    let elemento = document.getElementById(p);
+                    if (elemento) elemento.style.display = 'none'; 
+                });
+                
+                document.getElementById(pantallaDestino).style.display = 'block'; 
+                // NUEVO: Cargar lista de clientes al entrar a la tienda
+                if (pantallaDestino === 'pantallaTienda') {
+                    actualizarSelectorCompradores();
+                    inicializarTienda();
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                
+                if (pantallaDestino === 'pantallaStats' && typeof radarChart !== 'undefined') radarChart.update();
+                if (pantallaDestino === 'pantallaResumen' && typeof radarChartResumen !== 'undefined') radarChartResumen.update();
+                if (pantallaDestino === 'pantallaVistaPersonaje' && typeof radarChartVista !== 'undefined') radarChartVista.update();
+                if (pantallaDestino === 'pantallaMovimientos') filtrarCompendio();
+
+                // --- MAGIA MUSICAL ---
+                const musica = document.getElementById('musicaTema');
+                if (musica) {
+                    // Si entramos a cualquier parte del Creador de Personajes...
+                    if (pantallaDestino === 'pantallaStats' || pantallaDestino === 'pantallaHistoria' || pantallaDestino === 'pantallaResumen') {
+                        if (musica.paused) {
+                            musica.volume = 1; // Aseguramos que el volumen esté al máximo
+                            musica.play().catch(e => console.log("El navegador pide un primer clic antes de reproducir audio."));
+                        }
+                    } else {
+                        // Si salimos al menú principal, campamento o dados, apagamos suavemente
+                        hacerFadeOutMusica();
+                    }
+                }
+            } catch (error) { console.error("Error cambiando pantalla:", error); }
+        }
+
+        // --- EFECTO DE CINE: BAJAR EL VOLUMEN POCO A POCO (FADE OUT) ---
+        function hacerFadeOutMusica() {
+            const musica = document.getElementById('musicaTema');
+            if (!musica || musica.paused) return;
+
+            let volumen = musica.volume;
+            // Un reloj interno que se ejecuta cada 100 milisegundos
+            const fade = setInterval(() => {
+                if (volumen > 0.05) {
+                    volumen -= 0.05; // Le bajamos 5% el volumen
+                    musica.volume = volumen;
+                } else {
+                    // Cuando ya no se escucha, apagamos el reloj y la canción
+                    clearInterval(fade);
+                    musica.pause();
+                    musica.volume = 1; // Reseteamos el volumen para la próxima vez que entres
+                }
+            }, 100); 
+        }
+
+        // 2. INICIALIZACIÓN DE LAS 3 GRÁFICAS (Deben ir afuera de las funciones)
+        let radarChart, radarChartResumen, radarChartVista;
+        try {
+            const optGrafica = { scales: { r: { min: -5, suggestedMax: 8, ticks: { stepSize: 2, display: false }, grid: { color: '#8b4513' }, angleLines: { color: '#8b4513' }, pointLabels: { color: '#3e2723', font: { size: 13, family: 'Georgia', weight: 'bold' } } } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } };
+            
+            radarChart = new Chart(document.getElementById('graficaRadar').getContext('2d'), { type: 'radar', data: { labels: ['Atq', 'Def', 'Vel', 'C.I.', 'Def. Esp', 'Atq. Esp'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: 'rgba(139, 0, 0, 0.4)', borderColor: '#8b0000', pointBackgroundColor: '#d4b886', borderWidth: 2 }] }, options: optGrafica });
+            radarChartResumen = new Chart(document.getElementById('graficaRadarResumen').getContext('2d'), { type: 'radar', data: { labels: ['Atq', 'Def', 'Vel', 'C.I.', 'Def. Esp', 'Atq. Esp'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: 'rgba(139, 0, 0, 0.4)', borderColor: '#8b0000', pointBackgroundColor: '#d4b886', borderWidth: 2 }] }, options: optGrafica });
+            radarChartVista = new Chart(document.getElementById('graficaRadarVista').getContext('2d'), { type: 'radar', data: { labels: ['Atq', 'Def', 'Vel', 'C.I.', 'Def. Esp', 'Atq. Esp'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: 'rgba(139, 0, 0, 0.4)', borderColor: '#8b0000', pointBackgroundColor: '#d4b886', borderWidth: 2 }] }, options: optGrafica });
+        } catch(e) { console.error("La gráfica no cargó:", e); }
+
+        // --- LÓGICA DE DADOS Y FÓRMULA DE DAÑO CONECTADOS ---
+        // Doble memoria para los dos tipos de dados
+        let memoriaD20 = 0;
+        let memoriaExtra = 0;
+
+        function tirarD20(cantidad) {
+            memoriaD20 = 0; // Reiniciamos memoria
+            const contenedor = document.getElementById('contenedorD20');
+            const mensaje = document.getElementById('mensajeD20');
+            contenedor.innerHTML = '';
+            
+            let hayCritico = false; let hayPifia = false;
+            let resultados = []; // Guardamos los resultados para buscar repetidos
+
+            for (let i = 0; i < cantidad; i++) {
+                const res = Math.floor(Math.random() * 20) + 1;
+                resultados.push(res);
+                
+                let cajaDado = document.createElement('div');
+                cajaDado.className = 'caja-dado';
+                cajaDado.innerText = res;
+                cajaDado.dataset.valor = res; // Guardamos el valor oculto para que el sistema lo lea luego
+                cajaDado.style.cursor = 'pointer';
+
+                if (res === 20) { cajaDado.classList.add('critico-exito'); hayCritico = true; } 
+                else if (res === 1) { cajaDado.classList.add('critico-pifia'); hayPifia = true; }
+
+                cajaDado.onclick = function() {
+                    // Alterna la selección (si está apagado lo prende, si está prendido lo apaga)
+                    this.classList.toggle('dado-seleccionado');
+                    
+                    // Recalcula la memoria sumando TODOS los dados que estén seleccionados al mismo tiempo
+                    memoriaD20 = 0;
+                    document.querySelectorAll('#contenedorD20 .dado-seleccionado').forEach(d => {
+                        memoriaD20 += parseInt(d.dataset.valor);
+                    });
+                };
+                contenedor.appendChild(cajaDado);
+            }
+
+            // --- MAGIA: BUSCADOR DE COINCIDENCIAS PARA MOVIMIENTOS ESPECIALES ---
+            let repetidosMensaje = "";
+            if (cantidad > 1) {
+                let conteo = {};
+                resultados.forEach(num => { conteo[num] = (conteo[num] || 0) + 1; });
+                
+                for (let num in conteo) {
+                    if (conteo[num] >= 2) { // Si hay 2 o 3 iguales
+                        if (conteo[num] === 3) repetidosMensaje = `¡TRIPLE COINCIDENCIA DE ${num}! 🌟 ¡Efecto Máximo Activado!`;
+                        if (conteo[num] === 2) repetidosMensaje = `¡DOBLE COINCIDENCIA DE ${num}! ✨ ¡Revisa las reglas de tu magia!`;
+                        
+                        // Iluminamos de dorado los dados que coincidieron mágicamente
+                        document.querySelectorAll('#contenedorD20 .caja-dado').forEach(caja => {
+                            if (caja.dataset.valor == num) {
+                                caja.style.borderColor = "#d4af37";
+                                caja.style.color = "#d4af37";
+                                caja.style.backgroundColor = "#3e2723";
+                                caja.style.boxShadow = "0 0 15px #d4af37";
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Mostramos los mensajes en la mesa
+            if (repetidosMensaje !== "") {
+                mensaje.innerHTML = `<span style="background: #8b0000; color: #d4af37; padding: 4px 10px; border-radius: 5px; font-size: 16px; display: inline-block; margin-bottom: 8px;">${repetidosMensaje}</span><br>Toca los dados que quieras usar para sumarlos.`;
+            } else if (hayCritico) {
+                mensaje.innerText = "¡ÉXITO CRÍTICO! Toca el dado (o los dados) para usarlos.";
+            } else if (hayPifia) {
+                mensaje.innerText = "¡PIFIA CRÍTICA! Algo salió terriblemente mal.";
+            } else {
+                mensaje.innerText = "Selecciona uno o varios d20 tocándolos para sumarlos en la calculadora.";
+            }
+        }
+
+        function tirarExtra(caras) {
+            const contenedor = document.getElementById('contenedorExtra');
+            contenedor.innerHTML = '';
+            
+            const res = Math.floor(Math.random() * caras) + 1;
+            let cajaDado = document.createElement('div');
+            cajaDado.className = 'caja-dado dado-seleccionado'; // Este se auto-selecciona para ahorrar clics
+            cajaDado.innerText = res;
+            
+            memoriaExtra = res;
+            contenedor.appendChild(cajaDado);
+        }
+
+        function borrarExtra() {
+            memoriaExtra = 0;
+            document.getElementById('contenedorExtra').innerHTML = '<div style="color: #5c0000; font-style: italic; margin-top: 10px;">Sin dado extra (Ataque normal).</div>';
+        }
+
+        function calcularDañoOficial() {
+            // Verificamos que al menos haya tocado su D20
+            if (memoriaD20 === 0) {
+                alert("🎲 ¡Alto ahí! Primero lanza tu D20 y asegúrate de tocar el número que vas a usar.");
+                return;
+            }
+
+            const atq = parseInt(document.getElementById('calcAtq').value) || 0;
+            const def = parseInt(document.getElementById('calcDef').value) || 0;
+            
+            let multCrudo = parseFloat(document.getElementById('calcMult').value);
+            const mult = isNaN(multCrudo) ? 1 : multCrudo; 
+
+            // Tomamos los dados de la memoria
+            const d20 = memoriaD20; 
+            const dExtra = memoriaExtra; 
+            
+            // LA NUEVA FÓRMULA OFICIAL: D20 + Extra + Atributo - Defensa Enemiga
+            let dañoBase = d20 + dExtra + atq - def;
+            
+            if (dañoBase < 0) dañoBase = 0;
+
+            let dañoFinal = Math.floor(dañoBase * mult);
+            
+            if (mult === 0) { dañoFinal = 0; } 
+            else if (mult === 0.5 && dañoFinal < 0) { dañoFinal = 0; } 
+            else if (mult >= 1 && dañoFinal < 1) { dañoFinal = 1; }
+
+            const divResultado = document.getElementById('resultadoDañoTotal');
+            const divDesglose = document.getElementById('desgloseFormula');
+
+            divResultado.style.display = 'block';
+            divResultado.innerText = `${dañoFinal} Daño`;
+            
+            let colorD20 = "#8b0000"; let textoD20 = "";
+            if (d20 === 20) { colorD20 = "#32cd32"; textoD20 = " (Crítico)"; divResultado.style.color = "#32cd32"; }
+            else if (d20 === 1) { colorD20 = "#8b0000"; textoD20 = " (Pifia)"; divResultado.style.color = "#8b0000"; }
+            else { divResultado.style.color = "#8b0000"; }
+
+            // Texto visual del dado extra si es que tiró uno
+            let txtExtra = dExtra > 0 ? ` + ${dExtra} (Dado Magia)` : "";
+
+            divDesglose.innerHTML = `Desglose de la Fórmula: <br> [ <b style="color:${colorD20}">${d20}</b>${textoD20}${txtExtra} + ${atq} Ofensiva - ${def} Defensa ] x ${mult} = <b>${dañoFinal}</b>`;
+        }
+
+        function actualizarGrafica() { if (!radarChart) return; radarChart.data.datasets[0].data = [ document.getElementById('atqInput').value, document.getElementById('defInput').value, document.getElementById('velInput').value, document.getElementById('ciInput').value, document.getElementById('defEspInput').value, document.getElementById('atqEspInput').value ]; radarChart.update(); }
+        function actualizarBarras() { 
+            let hp = Math.max(0, document.getElementById('hpInput').value || 0); 
+            let pp = Math.max(0, document.getElementById('ppInput').value || 0); 
+            document.getElementById('hpInput').value = hp; 
+            document.getElementById('ppInput').value = pp; 
+            document.getElementById('barraHP').style.width = Math.min((hp/100)*100, 100)+'%'; 
+            document.getElementById('textoHP').innerText = hp+' / 100'; 
+            document.getElementById('barraPP').style.width = Math.min((pp/30)*100, 100)+'%'; 
+            document.getElementById('textoPP').innerText = pp+' / 30'; 
+        }
+
+        function calcularPuntosAtributos() {
+            const maxPuntos = 8; // Puntos iniciales para gastar
+            const ids = ['atqInput', 'defInput', 'atqEspInput', 'defEspInput', 'velInput', 'ciInput'];
+            let sumaGastada = 0;
+
+            ids.forEach(id => {
+                let val = parseInt(document.getElementById(id).value) || 0;
+                // Forzamos los límites (Máx 8, Mín -5)
+                if (val > 8) { val = 8; document.getElementById(id).value = val; }
+                if (val < -5) { val = -5; document.getElementById(id).value = val; }
+                sumaGastada += val;
+            });
+
+            let disponibles = maxPuntos - sumaGastada;
+            const contador = document.getElementById('contadorPuntos');
+
+            // Cambiamos el color si se pasan de los puntos
+            if (disponibles < 0) {
+                contador.innerHTML = `⚠️ ¡Te pasaste! (${disponibles})`;
+                contador.style.backgroundColor = '#ff4500'; 
+            } else {
+                contador.innerHTML = `Puntos Disponibles: ${disponibles}`;
+                contador.style.backgroundColor = '#8b0000'; 
+            }
+            actualizarGrafica();
+        }
+
+        document.querySelectorAll('input[type="number"]').forEach(input => { 
+            input.addEventListener('input', function() { 
+                if (this.id === 'cantidadDados') return; 
+                if (['atqInput', 'defInput', 'atqEspInput', 'defEspInput', 'velInput', 'ciInput'].includes(this.id)) { 
+                    calcularPuntosAtributos(); 
+                } else { 
+                    actualizarBarras(); 
+                } 
+            }); 
+        });
+
+        function cargarFoto(e) { const arch = e.target.files[0]; if(arch){ const lec = new FileReader(); lec.onload = function(evt){ document.getElementById('imagenPersonaje').src = evt.target.result; document.getElementById('panelAjusteFoto').style.display='block'; document.getElementById('zoomFoto').value=1; document.getElementById('xFoto').value=50; document.getElementById('yFoto').value=50; ajustarFoto(); }; lec.readAsDataURL(arch); } }
+        function ajustarFoto() { const img = document.getElementById('imagenPersonaje'); img.style.objectPosition = `${document.getElementById('xFoto').value}% ${document.getElementById('yFoto').value}%`; img.style.transformOrigin = `${document.getElementById('xFoto').value}% ${document.getElementById('yFoto').value}%`; img.style.transform = `scale(${document.getElementById('zoomFoto').value})`; }
+        function cargarFotoObjetivo(e, num) { const arch = e.target.files[0]; if(arch){ const lec = new FileReader(); lec.onload = function(evt){ document.getElementById('imgObj'+num).src = evt.target.result; }; lec.readAsDataURL(arch); } }
+
+        function prepararResumen() {
+            const imgOrig = document.getElementById('imagenPersonaje'); const imgRes = document.getElementById('imgResumen');
+            imgRes.src = imgOrig.src; imgRes.style.objectPosition = imgOrig.style.objectPosition; imgRes.style.transformOrigin = imgOrig.style.transformOrigin; imgRes.style.transform = imgOrig.style.transform;
+            document.getElementById('resumenNombre').innerText = document.getElementById('nombreInput').value || 'Héroe Sin Nombre'; document.getElementById('resumenEspecie').innerText = document.getElementById('especieInput').value || 'Especie Desconocida';
+            document.getElementById('resumenTextoHP').innerText = document.getElementById('textoHP').innerText; document.getElementById('resumenBarraHP').style.width = document.getElementById('barraHP').style.width;
+            document.getElementById('resumenTextoPP').innerText = document.getElementById('textoPP').innerText; document.getElementById('resumenBarraPP').style.width = document.getElementById('barraPP').style.width;
+            if (radarChartResumen) radarChartResumen.data.datasets[0].data = radarChart.data.datasets[0].data;
+            function llenarLista(id, campos) { const ul = document.getElementById(id); ul.innerHTML = ''; campos.forEach(c => { const val = document.getElementById(c).value; if(val.trim()!=='') ul.innerHTML += `<li>${val}</li>`; }); if(ul.innerHTML==='') ul.innerHTML = '<li style="color:#666;font-style:italic;">Vacío</li>'; }
+            llenarLista('listaHabilidades', ['habilidad1Nombre', 'habilidad2Nombre']); llenarLista('listaAtaques', ['ataque1Nombre', 'ataque2Nombre']); llenarLista('listaObjetos', ['equipo1Nombre', 'equipo2Nombre', 'equipo3Nombre', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5']);
+            cambiarPantalla('pantallaResumen'); 
+        }
+
+        // --- LÓGICA DEL CAMPAMENTO Y FICHAS INTERACTIVAS ---
+        let campamento = [];
+        let personajeActualIndex = null; // Nos dice qué personaje estamos viendo actualmente
+
+        function cargarPersonajesJSON(event) {
+            const archivos = event.target.files;
+            for (let i = 0; i < archivos.length; i++) {
+                const lector = new FileReader();
+                lector.onload = function(e) {
+                    try {
+                        const personaje = JSON.parse(e.target.result);
+                        campamento.push(personaje); 
+                        actualizarCampamento(); 
+                    } catch (error) { alert("Error leyendo el archivo."); }
+                };
+                lector.readAsText(archivos[i]);
+            }
+        }
+
+        function actualizarCampamento() {
+            const contenedor = document.getElementById('cuadriculaCampamento');
+            contenedor.innerHTML = ''; 
+
+            campamento.forEach((pj, index) => {
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'seccion-foto'; tarjeta.style.cursor = 'pointer'; tarjeta.style.border = '2px solid #8b0000';
+                
+                const nombre = pj.identidad.nombre || "Desconocido";
+                const especie = pj.identidad.especie || "???";
+                const foto = pj.identidad.fotoBase64 || "https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?";
+                const nivel = pj.vitalidad.lvl || 1; // Lee el nivel
+                
+                // Calcula el HP actual
+                const hpMax = pj.vitalidad.hpMax !== undefined ? pj.vitalidad.hpMax : (pj.vitalidad.hp || 0);
+                const hpActual = pj.vitalidad.hpActual !== undefined ? pj.vitalidad.hpActual : hpMax;
+                const zoom = pj.identidad.ajustesFoto.zoom || 1; const x = pj.identidad.ajustesFoto.x || 50; const y = pj.identidad.ajustesFoto.y || 50;
+
+                tarjeta.innerHTML = `
+                    <div class="marco-foto" style="width: 100px; height: 100px; margin-bottom: 5px;">
+                        <img src="${foto}" style="object-position: ${x}% ${y}%; transform-origin: ${x}% ${y}%; transform: scale(${zoom});">
+                    </div>
+                    <h3 style="margin: 5px 0 0 0; font-size: 18px;">${nombre} <span style="background: #d4af37; color: #3e2723; padding: 2px 6px; border-radius: 4px; font-size: 12px; vertical-align: middle;">Lvl: ${nivel}</span></h3>
+                    <span style="font-size: 13px; color: #5c0000; font-style: italic;">${especie}</span>
+                    <span style="font-size: 13px; font-weight: bold; color: #b8860b; margin-left: 5px;">| 💰 ${pj.dinero || 0} Poke's</span>
+                    <div style="margin-top: 10px; width: 100%; text-align: center; font-weight: bold; background: #32cd32; color: #fff; padding: 5px; border-radius: 5px; border: 1px solid #1e7d1e;">HP: ${hpActual} / ${hpMax}</div>
+                `;
+                tarjeta.onclick = function() { verPersonaje(index); };
+                contenedor.appendChild(tarjeta);
+            });
+        }
+
+        function verPersonaje(index) {
+            personajeActualIndex = index;
+            const pj = campamento[index]; 
+            
+            let dineroActual = pj.dinero || 0;
+            document.getElementById('vistaNombre').innerHTML = (pj.identidad.nombre || "Desconocido") + 
+                ' <span style="background: #d4af37; color: #3e2723; padding: 2px 8px; border-radius: 5px; font-size: 14px; vertical-align: middle;">Lvl: ' + (pj.vitalidad.lvl || 1) + '</span>' + 
+                ' <span style="background: #e6c200; color: #8b4513; padding: 2px 8px; border-radius: 5px; font-size: 14px; vertical-align: middle; margin-left: 5px;">💰 ' + dineroActual + ' Poke\'s</span>';
+            document.getElementById('vistaEspecie').innerText = pj.identidad.especie || "???";
+            
+            const imgVista = document.getElementById('vistaImg');
+            imgVista.src = pj.identidad.fotoBase64 || "https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?";
+            imgVista.style.transform = `scale(${pj.identidad.ajustesFoto.zoom || 1})`;
+            imgVista.style.objectPosition = `${pj.identidad.ajustesFoto.x || 50}% ${pj.identidad.ajustesFoto.y || 50}%`;
+            imgVista.style.transformOrigin = `${pj.identidad.ajustesFoto.x || 50}% ${pj.identidad.ajustesFoto.y || 50}%`;
+
+            // ¡MAGIA! Establecemos Valores Máximos si es la primera vez que se carga
+            if (pj.vitalidad.hpMax === undefined) pj.vitalidad.hpMax = parseInt(pj.vitalidad.hp) || 0;
+            if (pj.vitalidad.hpActual === undefined) pj.vitalidad.hpActual = pj.vitalidad.hpMax;
+            if (pj.vitalidad.ppMax === undefined) pj.vitalidad.ppMax = parseInt(pj.vitalidad.pp) || 0;
+            if (pj.vitalidad.ppActual === undefined) pj.vitalidad.ppActual = pj.vitalidad.ppMax;
+
+            actualizarBarrasVista();
+
+            // 3. Llenamos la Gráfica Radial leyendo el diccionario de "atributos" Y PONEMOS LOS NÚMEROS
+            if (radarChartVista && pj.atributos) {
+                const a = pj.atributos;
+                radarChartVista.data.labels = [
+                    `Atq: ${a.atq||0}`, `Def: ${a.def||0}`, `Vel: ${a.vel||0}`, 
+                    `C.I.: ${a.ci||0}`, `Def. Esp: ${a.defEsp||0}`, `Atq. Esp: ${a.atqEsp||0}`
+                ];
+                radarChartVista.data.datasets[0].data = [ a.atq||0, a.def||0, a.vel||0, a.ci||0, a.defEsp||0, a.atqEsp||0 ];
+                radarChartVista.update();
+            }
+
+            // 4. Llenamos las listas mostrando DESCRIPCIONES si existen
+            function llenarListaVista(idUl, arregloObjetos) {
+                const ul = document.getElementById(idUl);
+                ul.innerHTML = '';
+                let hayAlgo = false;
+                
+                if(arregloObjetos) {
+                    arregloObjetos.forEach(item => {
+                        if (typeof item === 'string') {
+                            if (item.trim() !== "") { ul.innerHTML += `<li style="margin-bottom: 5px;">${item}</li>`; hayAlgo = true; }
+                        } else {
+                            if (item.nombre && item.nombre.trim() !== "") { 
+                                let desc = (item.descripcion && item.descripcion.trim() !== "") ? `<br><span style="font-size: 12px; color: #5c0000; font-weight: normal; font-style: italic;">${item.descripcion}</span>` : '';
+                                ul.innerHTML += `<li style="margin-bottom: 10px;">${item.nombre} ${desc}</li>`; 
+                                hayAlgo = true; 
+                            }
+                        }
+                    });
+                }
+                if (!hayAlgo) ul.innerHTML = '<li style="color: #666; font-style: italic;">Nada por aquí...</li>';
+            }
+
+            llenarListaVista('vistaHabilidades', pj.habilidades);
+            llenarListaVista('vistaAtaques', pj.ataques);
+            renderizarInventarioVista(); 
+
+            cambiarPantalla('pantallaVistaPersonaje');
+        }
+
+        // Funciones interactivas de Combate
+        function actualizarBarrasVista() {
+            const pj = campamento[personajeActualIndex];
+            document.getElementById('vistaTextoHP').innerText = `${pj.vitalidad.hpActual} / ${pj.vitalidad.hpMax}`;
+            document.getElementById('vistaBarraHP').style.width = Math.max(0, Math.min((pj.vitalidad.hpActual / pj.vitalidad.hpMax) * 100, 100)) + '%';
+            
+            document.getElementById('vistaTextoPP').innerText = `${pj.vitalidad.ppActual} / ${pj.vitalidad.ppMax}`;
+            document.getElementById('vistaBarraPP').style.width = Math.max(0, Math.min((pj.vitalidad.ppActual / pj.vitalidad.ppMax) * 100, 100)) + '%';
+
+            // Cálculos de la Barra de Experiencia
+            if (pj.vitalidad.exp === undefined) pj.vitalidad.exp = 0;
+            if (pj.vitalidad.lvl === undefined) pj.vitalidad.lvl = 1;
+            const expMax = pj.vitalidad.lvl * 100; // Nivel 1 pide 100, Nivel 2 pide 200...
+            document.getElementById('vistaTextoEXP').innerText = `${pj.vitalidad.exp} / ${expMax}`;
+            document.getElementById('vistaBarraEXP').style.width = Math.min((pj.vitalidad.exp / expMax) * 100, 100) + '%';
+        }
+
+        function modificarBarra(tipo, cantidad) {
+            const pj = campamento[personajeActualIndex];
+            if (tipo === 'hp') {
+                pj.vitalidad.hpActual += cantidad;
+                if(pj.vitalidad.hpActual > pj.vitalidad.hpMax) pj.vitalidad.hpActual = pj.vitalidad.hpMax;
+                if(pj.vitalidad.hpActual < 0) pj.vitalidad.hpActual = 0;
+            } else if (tipo === 'pp') {
+                pj.vitalidad.ppActual += cantidad;
+                if(pj.vitalidad.ppActual > pj.vitalidad.ppMax) pj.vitalidad.ppActual = pj.vitalidad.ppMax;
+                if(pj.vitalidad.ppActual < 0) pj.vitalidad.ppActual = 0;
+            }
+            actualizarBarrasVista();
+            actualizarCampamento(); // Actualiza la tarjeta pequeña afuera
+        }
+
+        function renderizarInventarioVista() {
+            const pj = campamento[personajeActualIndex];
+            const ul = document.getElementById('vistaObjetos');
+            ul.innerHTML = '';
+            let hayAlgo = false;
+
+            if (pj.equipo) {
+                pj.equipo.forEach((item, i) => {
+                    if (item.nombre && item.nombre.trim() !== "") {
+                        let txtFormateado = item.descripcion ? item.descripcion.replace(/\*\*(.*?)\*\*/g, '<b style="color: #5c0000;">$1</b>').replace(/\n/g, '<br>') : '';
+                        let desc = txtFormateado ? `<div style="font-size: 11px; color: #5c0000; font-weight: normal; font-style: italic; margin-top: 5px;">${txtFormateado}</div>` : '';
+                        ul.innerHTML += `<li style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #e0d8c3;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                                <span style="flex-grow: 1;"><b>[Equipo]</b> ${item.nombre}</span>
+                                <div style="white-space: nowrap; flex-shrink: 0;">
+                                    <button class="btn-usar" style="background-color: #8b6508; border-color: #5c4305; margin-right: 2px;" onclick="enviarAlBaul('equipo', ${i})">📥 Reserva</button>
+                                    <button class="btn-usar" onclick="quitarItem('equipo', ${i})">❌</button>
+                                </div>
+                            </div>
+                            ${desc}
+                        </li>`;
+                        hayAlgo = true;
+                    }
+                });
+            }
+            if (pj.inventario) {
+                pj.inventario.forEach((item, i) => {
+                    // Magia de Compatibilidad: Revisa si el objeto es un texto viejo o un objeto nuevo con descripción
+                    let nombreItem = typeof item === 'string' ? item : (item ? item.nombre : "");
+                    let descItem = typeof item === 'string' ? "" : (item ? item.descripcion : "");
+                    
+                    if (nombreItem && nombreItem.trim() !== "") {
+                        let txtFormateado = descItem ? descItem.replace(/\*\*(.*?)\*\*/g, '<b style="color: #5c0000;">$1</b>').replace(/\n/g, '<br>') : '';
+                        let vistaDesc = txtFormateado ? `<div style="font-size: 11px; color: #5c0000; font-weight: normal; font-style: italic; margin-top: 5px;">${txtFormateado}</div>` : '';
+                        
+                        ul.innerHTML += `<li style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #e0d8c3;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                                <span style="flex-grow: 1;"><b>[Objeto]</b> ${nombreItem}</span>
+                                <div style="white-space: nowrap; flex-shrink: 0;">
+                                    <button class="btn-usar" style="background-color: #8b6508; border-color: #5c4305; margin-right: 2px;" onclick="enviarAlBaul('inventario', ${i})">📥 Reserva</button>
+                                    <button class="btn-usar btn-curar" onclick="quitarItem('inventario', ${i})">Usar 🧪</button>
+                                </div>
+                            </div>
+                            ${vistaDesc}
+                        </li>`;
+                        hayAlgo = true;
+                    }
+                });
+            }
+            if (!hayAlgo) ul.innerHTML = '<li style="color: #666; font-style: italic;">Mochila principal vacía...</li>';
+        }
+
+        function quitarItem(tipo, index) {
+            const pj = campamento[personajeActualIndex];
+            if (tipo === 'equipo') { pj.equipo[index] = { nombre: "", descripcion: "" }; } 
+            else if (tipo === 'inventario') { pj.inventario[index] = ""; }
+            renderizarInventarioVista(); 
+        }
+
+        function enviarAlBaul(tipo, index) {
+            const pj = campamento[personajeActualIndex];
+            if (!pj.baul) pj.baul = []; 
+            let itemGuardado = null;
+
+            if (tipo === 'equipo') {
+                itemGuardado = { tipo: 'equipo', nombre: pj.equipo[index].nombre, descripcion: pj.equipo[index].descripcion };
+                pj.equipo[index] = { nombre: "", descripcion: "" }; 
+            } else if (tipo === 'inventario') {
+                let nombreItem = typeof pj.inventario[index] === 'string' ? pj.inventario[index] : pj.inventario[index].nombre;
+                let descItem = typeof pj.inventario[index] === 'string' ? "" : pj.inventario[index].descripcion;
+                
+                // Rescate: Si no tiene descripción, la busca en el Compendio antes de mandarlo al baúl
+                if (!descItem || descItem.trim() === "") {
+                    let compendioItem = baseDeDatosCompendio.find(x => x.nombre === nombreItem);
+                    if (compendioItem) descItem = compendioItem.desc;
+                }
+                itemGuardado = { tipo: 'consumible', nombre: nombreItem, descripcion: descItem };
+                pj.inventario[index] = ""; 
+            }
+
+            if (itemGuardado && itemGuardado.nombre.trim() !== "") { pj.baul.push(itemGuardado); }
+            renderizarInventarioVista();
+        }
+
+        function tomarDelBaul(indexBaul) {
+            const pj = campamento[personajeActualIndex];
+            const item = pj.baul[indexBaul];
+            let agregado = false;
+
+            if (item.tipo === 'equipo') {
+                for (let i = 0; i < 3; i++) {
+                    if (!pj.equipo[i] || !pj.equipo[i].nombre || pj.equipo[i].nombre.trim() === '') {
+                        pj.equipo[i] = { nombre: item.nombre, descripcion: item.descripcion };
+                        agregado = true; break;
+                    }
+                }
+                if (!agregado) alert("🛡️ ¡No tienes espacio para más equipo! Quita un armamento y envíalo a tu Reserva primero.");
+            } else {
+                for (let i = 0; i < 5; i++) {
+                    let nombreEnBolsillo = typeof pj.inventario[i] === 'string' ? pj.inventario[i] : (pj.inventario[i] ? pj.inventario[i].nombre : "");
+                    if (!nombreEnBolsillo || nombreEnBolsillo.trim() === '') {
+                        // ¡Ahora guarda el objeto COMPLETO con su descripción en el bolsillo rápido!
+                        pj.inventario[i] = { nombre: item.nombre, descripcion: item.descripcion }; 
+                        agregado = true; break;
+                    }
+                }
+                if (!agregado) alert("🧪 ¡Tus bolsillos rápidos están llenos! Envía algo a tu Reserva primero.");
+            }
+
+            if (agregado) {
+                pj.baul.splice(indexBaul, 1); 
+                renderizarInventarioVista(); 
+                abrirBaul(); 
+            }
+        }
+
+        function abrirBaul() {
+            const pj = campamento[personajeActualIndex];
+            if (!pj.baul) pj.baul = []; 
+            document.getElementById('tituloModalBaul').innerText = `🎒 Reserva de ${pj.identidad.nombre}`;
+            
+            const ul = document.getElementById('listaObjetosBaul');
+            ul.innerHTML = '';
+            
+            if (pj.baul.length === 0) {
+                ul.innerHTML = '<li style="color: #666; font-style: italic; text-align: center;">La reserva extra está vacía...</li>';
+            } else {
+                pj.baul.forEach((item, i) => {
+                    let icono = item.tipo === 'equipo' ? '🛡️' : '🧪';
+                    let txtFormateado = item.descripcion ? item.descripcion.replace(/\*\*(.*?)\*\*/g, '<b style="color: #5c0000;">$1</b>').replace(/\n/g, '<br>') : '';
+                    let desc = txtFormateado ? `<div style="font-size: 11px; color: #5c0000; margin-top: 8px; line-height: 1.4; border-top: 1px dashed rgba(139, 69, 19, 0.3); padding-top: 5px;">${txtFormateado}</div>` : '';
+                    
+                    // El botón de Usar solo sale en Consumibles/Recetas
+                    let botonUsar = item.tipo === 'consumible' ? `<button class="btn-usar btn-curar" style="margin-right: 5px;" onclick="usarDelBaul(${i})">Usar 🧪</button>` : '';
+
+                    ul.innerHTML += `<li style="margin-bottom: 15px; background: rgba(139, 69, 19, 0.1); padding: 12px; border-radius: 5px; border: 1px solid #8b4513; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                            <span style="flex-grow: 1; font-weight: bold; color: #8b0000; font-size: 15px;">${icono} ${item.nombre}</span>
+                            <div style="white-space: nowrap; flex-shrink: 0;">
+                                <button class="btn-usar" style="background-color: #8b0000; border-color: #5c0000; margin-left: 5px;" onclick="tirarDelBaul(${i})">🗑️ Tirar</button>
+                                ${botonUsar}
+                                <button class="btn-usar" style="background-color: #32cd32; border-color: #1e7d1e;" onclick="tomarDelBaul(${i})">Mover ✋</button>
+                            </div>
+                        </div>
+                        ${desc}
+                    </li>`;
+                });
+            }
+            document.getElementById('modalBaul').style.display = 'flex';
+        }
+
+        function usarDelBaul(indexBaul) {
+            const pj = campamento[personajeActualIndex];
+            if (confirm(`¿Quieres consumir "${pj.baul[indexBaul].nombre}" directamente desde la reserva?\n\n(Recuerda sumar la HP u otros efectos manualmente en tu ficha usando los botones de +).`)) {
+                pj.baul.splice(indexBaul, 1); // Se lo come y desaparece
+                abrirBaul(); // Refresca la ventana
+            }
+        }
+
+        function tirarDelBaul(indexBaul) {
+            const pj = campamento[personajeActualIndex];
+            if (confirm(`¿Estás seguro de que quieres tirar "${pj.baul[indexBaul].nombre}" a la basura? No podrás recuperarlo.`)) {
+                pj.baul.splice(indexBaul, 1);
+                abrirBaul(); // Refresca la lista
+            }
+        }
+
+        // --- SISTEMA DE LA TIENDA DEL GREMIO ---
+        function actualizarSelectorCompradores() {
+            const selector = document.getElementById('selectorComprador');
+            selector.innerHTML = '<option value="-1">Nadie (Selecciona un héroe)</option>';
+            campamento.forEach((pj, i) => {
+                selector.innerHTML += `<option value="${i}">${pj.identidad.nombre} (Lvl: ${pj.vitalidad.lvl || 1})</option>`;
+            });
+        }
+
+        document.getElementById('selectorComprador').addEventListener('change', function() {
+            const index = this.value;
+            const vistaDinero = document.getElementById('dineroComprador');
+            if (index == -1) {
+                vistaDinero.innerText = "💰 0 Poke's";
+            } else {
+                vistaDinero.innerText = `💰 ${campamento[index].dinero || 0} Poke's`;
+            }
+        });
+
+        // --- MOTOR AUTOMÁTICO DE LA TIENDA ---
+        let estadoTienda = { consumibles: [], equipo: [], recetas: [], tiempoRenovacion: 0, tendero: 'Landhai' };
+
+        function inicializarTienda() {
+            const guardado = localStorage.getItem('tiendaMundoMisterioso');
+            if (guardado) estadoTienda = JSON.parse(guardado);
+            if (!estadoTienda.tendero) estadoTienda.tendero = 'Landhai';
+            actualizarUI_Tendero();
+            const ahora = Date.now();
+            if (ahora > estadoTienda.tiempoRenovacion || (estadoTienda.consumibles.length === 0 && estadoTienda.equipo.length === 0)) {
+                reabastecerTienda();
+            } else { renderizarTienda(); }
+        }
+
+        function forzarReabastecimiento() {
+            if (confirm("¿Estás seguro de querer cambiar todo el catálogo de Landhai ahora mismo?")) { reabastecerTienda(); }
+        }
+        
+        function actualizarUI_Tendero() {
+            const icono = document.getElementById('iconoTendero');
+            const nombre = document.getElementById('nombreTendero');
+            const dialogo = document.getElementById('dialogoTendero');
+            const btnReclutar = document.getElementById('btnReclutar');
+            const btnRegresar = document.getElementById('btnRegresar');
+
+            if (estadoTienda.tendero === 'Kecleon') {
+                // Mostramos a Kecleon (con una imagen provisional)
+                icono.innerHTML = '<img src="https://via.placeholder.com/120/78c850/ffffff?text=Kecleon" style="width: 100%; height: 100%; object-fit: cover;">'; 
+                nombre.innerText = 'Kecleon (Suplente)';
+                dialogo.innerText = '"¡Jejeje! El señor Landhai salió a estirar las piernas. ¡Yo me encargo de la tienda mientras tanto! ¡No se aceptan devoluciones!"';
+                if (btnReclutar) btnReclutar.style.display = 'none'; 
+                if (btnRegresar) btnRegresar.style.display = 'inline-block'; 
+            } else {
+                // Buscamos si la ficha de Landhai está cargada en el campamento para robarle la foto
+                let fotoLandhai = "https://via.placeholder.com/120/1e90ff/ffffff?text=Landhai"; 
+                let fichaLandhai = campamento.find(pj => pj.identidad.nombre.toLowerCase().includes('landhai'));
+                
+                if (fichaLandhai && fichaLandhai.identidad.fotoBase64) {
+                    fotoLandhai = fichaLandhai.identidad.fotoBase64;
+                }
+
+                icono.innerHTML = `<img src="${fotoLandhai}" style="width: 100%; height: 100%; object-fit: cover; object-position: ${fichaLandhai ? fichaLandhai.identidad.ajustesFoto.x : 50}% ${fichaLandhai ? fichaLandhai.identidad.ajustesFoto.y : 50}%; transform-origin: ${fichaLandhai ? fichaLandhai.identidad.ajustesFoto.x : 50}% ${fichaLandhai ? fichaLandhai.identidad.ajustesFoto.y : 50}%; transform: scale(${fichaLandhai ? fichaLandhai.identidad.ajustesFoto.zoom : 1});">`;
+                nombre.innerText = 'Landhai';
+                dialogo.innerText = '"¡Landhai dar bienvenida a gremio! ¿Qué querer tú comer hoy? Landhai tener ingredientes exóticos y platillos fuertes. ¡Tú comprar mucho, Landhai necesitar pagar gran deuda por romper techo!"';
+                if (btnReclutar) btnReclutar.style.display = 'inline-block'; 
+                if (btnRegresar) btnRegresar.style.display = 'none'; 
+            }
+        }
+
+        function intentarReclutar() {
+            const indexComprador = document.getElementById('selectorComprador').value;
+            if (indexComprador == -1) {
+                alert("❌ ¡Debes seleccionar en la caja de abajo quién está hablando con Landhai!");
+                return;
+            }
+
+            const pj = campamento[indexComprador];
+            const nivelRequerido = 5; 
+            const nivelPj = pj.vitalidad.lvl || 1;
+
+            if (nivelPj < nivelRequerido) {
+                let ordenDirecta = confirm(`🦈 Landhai mirar a ${pj.identidad.nombre} con ternura, pero negar con su gran cabeza...\n\n"¡Oh! Tú ser muy pequeñín todavía. Aún ser nivel ${nivelPj}. Mundo afuera ser muy peligroso, Landhai necesitar aliados nivel ${nivelRequerido} o más para no tener que proteger y cocinar al mismo tiempo. Tú entrenar mucho y Landhai invitar comida luego."\n\n[GM] ¿Tiene el jugador una orden del Líder del Gremio para llevarlo de todos modos?`);
+                
+                if (!ordenDirecta) {
+                    alert("Landhai sonreír, acomodar su bandana especial de chef y volver a frotar sus sartenes. Tú deber entrenar más.");
+                    return;
+                }
+            }
+
+            alert(`🦈 Landhai mostrar sonrisa grandota.\n\n"¡Al fin! ¡Aventura abrir mucho el apetito! Landhai empacar sartenes grandes ahora mismo. ¡Oye, amigo lagarto! ¡Kecleon! ¡Tú cuidar tienda y juntar moneditas para gran deuda de Landhai! ¡Si tú hacer buen trabajo y no comer ingredientes crudos, Landhai preparar gran banquete para ti al regresar!"\n\n🎉 ¡Has reclutado a Landhai!\n(El GM ahora puede cargar la ficha de Landhai en el campamento).`);
+            
+            estadoTienda.tendero = 'Kecleon'; 
+            localStorage.setItem('tiendaMundoMisterioso', JSON.stringify(estadoTienda));
+            actualizarUI_Tendero(); 
+        }
+
+        function regresarLandhai() {
+            if (confirm("¿Landhai ya terminó su aventura y regresa a la tienda?")) {
+                estadoTienda.tendero = 'Landhai';
+                localStorage.setItem('tiendaMundoMisterioso', JSON.stringify(estadoTienda));
+                actualizarUI_Tendero();
+                alert("¡Landhai ha vuelto a su mostrador!");
+            }
+        }
+
+        function reabastecerTienda() {
+            const todosConsumibles = baseDeDatosCompendio.filter(i => i.tipo === 'consumible');
+            const todoEquipo = baseDeDatosCompendio.filter(i => ['arma', 'armadura', 'reliquia'].includes(i.tipo));
+            const todasRecetas = baseDeDatosCompendio.filter(i => i.tipo === 'receta');
+
+            if (todosConsumibles.length === 0 && todasRecetas.length === 0 && todoEquipo.length === 0) { renderizarTienda(); return; }
+
+            // Surtimos cantidades exactas: 9 consumibles, 5 piezas de equipo, 5 recetas
+            const consumiblesElegidos = todosConsumibles.sort(() => Math.random() - 0.5).slice(0, 9); 
+            const equipoElegido = todoEquipo.sort(() => Math.random() - 0.5).slice(0, 5);
+            const recetasElegidas = todasRecetas.sort(() => Math.random() - 0.5).slice(0, 5);
+
+            // 3. Los empaquetamos y calculamos el precio INTELIGENTE basado en el Nivel
+            estadoTienda.consumibles = consumiblesElegidos.map(c => {
+                let nv = parseInt(c.nivel) || 1;
+                let multiplicador = nv === 1 ? 1 : (nv === 2 ? 2.5 : (nv === 3 ? 5 : 10));
+                let precioBase = Math.floor(Math.random() * 6 + 3) * 10; // Entre 30 y 80
+                return { nombre: c.nombre, desc: c.desc, nivel: nv, precio: Math.floor(precioBase * multiplicador), agotado: false };
+            });
+            
+            estadoTienda.equipo = equipoElegido.map(e => {
+                let nv = parseInt(e.nivel) || 1;
+                let multiplicador = nv === 1 ? 1 : (nv === 2 ? 3 : (nv === 3 ? 7 : 15)); // El equipo de alto nivel se dispara de precio
+                let precioBase = Math.floor(Math.random() * 11 + 10) * 10; // Entre 100 y 200
+                return { nombre: e.nombre, desc: e.desc, nivel: nv, precio: Math.floor(precioBase * multiplicador), agotado: false };
+            });
+
+            estadoTienda.recetas = recetasElegidas.map(r => {
+                let nv = parseInt(r.nivel) || 1;
+                let multiplicador = nv === 1 ? 1 : (nv === 2 ? 2 : (nv === 3 ? 4 : 8));
+                let precioBase = Math.floor(Math.random() * 11 + 5) * 10; // Entre 50 y 150
+                return { nombre: r.nombre, desc: r.desc, nivel: nv, precio: Math.floor(precioBase * multiplicador), agotado: false };
+            });
+
+            // 4. Programamos el reloj para dentro de 30 minutos
+            estadoTienda.tiempoRenovacion = Date.now() + (30 * 60 * 1000);
+            localStorage.setItem('tiendaMundoMisterioso', JSON.stringify(estadoTienda));
+            renderizarTienda();
+        }
+
+        function renderizarTienda() {
+            const divConsumibles = document.getElementById('tiendaConsumibles');
+            const divEquipo = document.getElementById('tiendaEquipo');
+            const divRecetas = document.getElementById('tiendaRecetas');
+            divConsumibles.innerHTML = ''; divEquipo.innerHTML = ''; divRecetas.innerHTML = '';
+
+            if (estadoTienda.consumibles.length === 0 && estadoTienda.recetas.length === 0 && estadoTienda.equipo.length === 0) {
+                divConsumibles.innerHTML = '<p style="color: #8b0000; font-style: italic; font-weight: bold; grid-column: 1 / -1;">⚠️ La tienda está vacía. ¡Carga tu Enciclopedia y presiona "Forzar Reabastecimiento"!</p>';
+                return;
+            }
+
+            // Mágia para que el texto se vea igual de bonito que en la enciclopedia
+            const formatTxt = (txt) => txt.replace(/\*\*(.*?)\*\*/g, '<b style="color: #5c0000;">$1</b>').replace(/\n/g, '<br>');
+
+            // Dibujar Consumibles
+            estadoTienda.consumibles.forEach((item, i) => {
+                const btn = item.agotado ? `<button class="btn-usar" style="width: 100%; background-color: #696969; color: #ccc; cursor: not-allowed; padding: 8px;">Agotado ❌</button>` : `<button class="btn-usar" style="width: 100%; background-color: #d4af37; border-color: #8b6508; color: #3e2723; font-weight: bold; font-size: 16px; padding: 8px;" onclick="comprarItemTienda('consumible', ${i})">Comprar (${item.precio} Poke's)</button>`;
+                divConsumibles.innerHTML += `<div style="background: #fff; border: 2px solid #32cd32; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; opacity: ${item.agotado ? '0.5' : '1'};"><h3 style="margin: 0 0 5px 0; color: #1e7d1e; font-size: 16px;">🧪 ${item.nombre}</h3><p style="font-size: 13px; color: #3e2723; margin: 0 0 15px 0; line-height: 1.4; flex-grow: 1;">${formatTxt(item.desc)}</p>${btn}</div>`;
+            });
+
+            // Dibujar Equipo
+            estadoTienda.equipo.forEach((item, i) => {
+                const btn = item.agotado ? `<button class="btn-usar" style="width: 100%; background-color: #696969; color: #ccc; cursor: not-allowed; padding: 8px;">Vendido ❌</button>` : `<button class="btn-usar" style="width: 100%; background-color: #4682b4; border-color: #27408b; color: white; font-weight: bold; font-size: 16px; padding: 8px;" onclick="comprarItemTienda('equipo', ${i})">Comprar (${item.precio} Poke's)</button>`;
+                divEquipo.innerHTML += `<div style="background: #f0f8ff; border: 2px solid #4682b4; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; opacity: ${item.agotado ? '0.5' : '1'};"><h3 style="margin: 0 0 5px 0; color: #27408b; font-size: 16px;">🛡️ ${item.nombre}</h3><p style="font-size: 13px; color: #3e2723; margin: 0 0 15px 0; line-height: 1.4; flex-grow: 1;">${formatTxt(item.desc)}</p>${btn}</div>`;
+            });
+
+            // Dibujar Recetas
+            estadoTienda.recetas.forEach((item, i) => {
+                const btn = item.agotado ? `<button class="btn-usar" style="width: 100%; background-color: #696969; color: #ccc; cursor: not-allowed; padding: 8px;">Platillo Agotado 🍽️</button>` : `<button class="btn-usar" style="width: 100%; background-color: #d2691e; border-color: #8b4513; color: white; font-weight: bold; font-size: 16px; padding: 8px;" onclick="comprarItemTienda('receta', ${i})">Comprar (${item.precio} Poke's)</button>`;
+                divRecetas.innerHTML += `<div style="background: #fffaf0; border: 2px solid #d2691e; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; opacity: ${item.agotado ? '0.5' : '1'};"><h3 style="margin: 0 0 5px 0; color: #8b4513; font-size: 16px;">🍲 ${item.nombre}</h3><p style="font-size: 13px; color: #3e2723; margin: 0 0 15px 0; line-height: 1.4; flex-grow: 1;">${formatTxt(item.desc)}</p>${btn}</div>`;
+            });
+        }
+
+        function comprarItemTienda(categoria, indexItem) {
+            const indexComprador = document.getElementById('selectorComprador').value;
+            if (indexComprador == -1) { alert("❌ ¡Debes seleccionar quién va a pagar antes de comprar!"); return; }
+
+            const pj = campamento[indexComprador];
+            let item;
+            if (categoria === 'consumible') item = estadoTienda.consumibles[indexItem];
+            else if (categoria === 'equipo') item = estadoTienda.equipo[indexItem];
+            else item = estadoTienda.recetas[indexItem];
+
+            if (pj.dinero === undefined) pj.dinero = 0;
+            if (pj.dinero < item.precio) { alert(`💸 ¡Fondos insuficientes!\n${pj.identidad.nombre} necesita ${item.precio} Poke's.`); return; }
+
+            if (confirm(`¿${pj.identidad.nombre} va a comprar "${item.nombre}" por ${item.precio} Poke's?`)) {
+                pj.dinero -= item.precio; 
+                
+                if (!pj.baul) pj.baul = [];
+                // Lo mandamos a la reserva: si es equipo va como equipo, si no, como consumible
+                pj.baul.push({ tipo: categoria === 'equipo' ? 'equipo' : 'consumible', nombre: item.nombre, descripcion: item.desc });
+                
+                document.getElementById('dineroComprador').innerText = `💰 ${pj.dinero} Poke's`;
+                actualizarCampamento(); 
+                
+                item.agotado = true;
+                localStorage.setItem('tiendaMundoMisterioso', JSON.stringify(estadoTienda));
+                renderizarTienda(); 
+                
+                alert(`✅ ¡Compra exitosa!\n"${item.nombre}" se ha guardado en la 🎒 Reserva de ${pj.identidad.nombre}.`);
+            }
+        }
+
+        // --- SISTEMA AVANZADO DE GUARDADO ("GUARDAR COMO...") ---
+        async function guardarArchivoAvanzado(contenidoTexto, nombreSugerido) {
+            try {
+                // Intenta abrir la ventana de Windows/Mac para elegir carpeta y nombre
+                if (window.showSaveFilePicker) {
+                    const opciones = {
+                        suggestedName: nombreSugerido,
+                        types: [{ description: 'Archivo JSON de Rol', accept: {'application/json': ['.json']} }],
+                    };
+                    const manejador = await window.showSaveFilePicker(opciones);
+                    const archivo = await manejador.createWritable();
+                    await archivo.write(contenidoTexto);
+                    await archivo.close();
+                    return true; // Se guardó con éxito
+                } else {
+                    throw new Error("El navegador no soporta la ventana de guardado.");
+                }
+            } catch (error) {
+                // Si el usuario le da a "Cancelar" en la ventana, no hacemos nada
+                if (error.name === 'AbortError') return false; 
+                
+                // PLAN B (Para navegadores viejos o celulares): Descarga normal
+                const blob = new Blob([contenidoTexto], { type: "application/json" });
+                const enlace = document.createElement("a");
+                enlace.href = URL.createObjectURL(blob);
+                enlace.download = nombreSugerido;
+                enlace.click();
+                return true;
+            }
+        }
+
+        // 1. Guardar la Ficha desde el Campamento
+        async function sobrescribirPersonaje() {
+            const pj = campamento[personajeActualIndex];
+            const textoJSON = JSON.stringify(pj, null, 4);
+            let nombreArchivo = (pj.identidad.nombre || "HeroeActualizado") + "_FichaRol.json";
+            
+            const exito = await guardarArchivoAvanzado(textoJSON, nombreArchivo);
+            if (exito) alert("¡El estado actual de " + pj.identidad.nombre + " ha sido guardado! 💾");
+        }
+
+        // 2. Guardar la Ficha desde el Creador Nuevo
+        async function guardarPersonaje() {
+            const personajeDatos = {
+                identidad: { nombre: document.getElementById('nombreInput').value, especie: document.getElementById('especieInput').value, fotoBase64: document.getElementById('imagenPersonaje').src, ajustesFoto: { zoom: document.getElementById('zoomFoto').value, x: document.getElementById('xFoto').value, y: document.getElementById('yFoto').value } },
+                vitalidad: { lvl: parseInt(document.getElementById('lvlInput').value) || 1, exp: 0, hp: document.getElementById('hpInput').value, pp: document.getElementById('ppInput').value },
+                atributos: { atq: document.getElementById('atqInput').value, def: document.getElementById('defInput').value, atqEsp: document.getElementById('atqEspInput').value, defEsp: document.getElementById('defEspInput').value, vel: document.getElementById('velInput').value, ci: document.getElementById('ciInput').value },
+                habilidades: [ { nombre: document.getElementById('habilidad1Nombre').value, descripcion: document.getElementById('habilidad1Desc').value }, { nombre: document.getElementById('habilidad2Nombre').value, descripcion: document.getElementById('habilidad2Desc').value } ],
+                ataques: [ { nombre: document.getElementById('ataque1Nombre').value, descripcion: document.getElementById('ataque1Desc').value }, { nombre: document.getElementById('ataque2Nombre').value, descripcion: document.getElementById('ataque2Desc').value } ],
+                equipo: [ { nombre: document.getElementById('equipo1Nombre').value, descripcion: document.getElementById('equipo1Desc').value }, { nombre: document.getElementById('equipo2Nombre').value, descripcion: document.getElementById('equipo2Desc').value }, { nombre: document.getElementById('equipo3Nombre').value, descripcion: document.getElementById('equipo3Desc').value } ],
+                dinero: 0, baul: [], inventario: [ document.getElementById('obj1').value, document.getElementById('obj2').value, document.getElementById('obj3').value, document.getElementById('obj4').value, document.getElementById('obj5').value ],
+                historia: { titulo: document.getElementById('tituloHistoria').value, texto: document.getElementById('textoHistoria').value, objetivos: [ { nombre: document.getElementById('nombreObj1').value, fotoBase64: document.getElementById('imgObj1').src }, { nombre: document.getElementById('nombreObj2').value, fotoBase64: document.getElementById('imgObj2').src }, { nombre: document.getElementById('nombreObj3').value, fotoBase64: document.getElementById('imgObj3').src } ] }
+            };
+            const textoJSON = JSON.stringify(personajeDatos, null, 4);
+            let nombreArchivo = (document.getElementById('nombreInput').value || "HeroeMisterioso") + "_FichaRol.json";
+            
+            const exito = await guardarArchivoAvanzado(textoJSON, nombreArchivo);
+            if (exito) {
+                alert("¡La ficha de " + nombreArchivo + " ha sido forjada y descargada con éxito! 💾");
+                limpiarFormularioCreador();
+                cambiarPantalla('pantallaInicio');
+            }
+        }
+
+        // 3. Guardar el Compendio / Enciclopedia
+        async function descargarCompendio() {
+            // Empaquetamos todo con 'let' en lugar de 'const' para mayor flexibilidad futura
+            let textoJS = "let baseDeDatosCompendio = " + JSON.stringify(baseDeDatosCompendio, null, 4) + ";";
+            
+            try {
+                // Esto es lo que abre la ventana "Guardar como..." de Windows
+                if (window.showSaveFilePicker) {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'enciclopedia.js',
+                        types: [{
+                            description: 'Archivo JavaScript',
+                            accept: {'text/javascript': ['.js']},
+                        }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(textoJS);
+                    await writable.close();
+                    alert("¡Enciclopedia sobrescrita y guardada con éxito en tu carpeta! 📜");
+                } else {
+                    // Si el navegador no soporta la ventana, hace la descarga normal
+                    let blob = new Blob([textoJS], { type: "text/javascript" });
+                    let enlace = document.createElement("a");
+                    enlace.href = URL.createObjectURL(blob);
+                    enlace.download = "enciclopedia.js";
+                    enlace.click();
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Error al guardar:", err);
+                    alert("Hubo un error al guardar el archivo.");
+                }
+            }
+        }
+
+        function limpiarFormularioCreador() {
+            // 1. Borramos todos los textos y descripciones
+            const idsTextos = ['nombreInput', 'especieInput', 'habilidad1Nombre', 'habilidad1Desc', 'habilidad2Nombre', 'habilidad2Desc', 'ataque1Nombre', 'ataque1Desc', 'ataque2Nombre', 'ataque2Desc', 'equipo1Nombre', 'equipo1Desc', 'equipo2Nombre', 'equipo2Desc', 'equipo3Nombre', 'equipo3Desc', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5', 'tituloHistoria', 'textoHistoria', 'nombreObj1', 'nombreObj2', 'nombreObj3'];
+            idsTextos.forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el) el.value = ''; 
+            });
+
+            // 2. Reseteamos la vida (20/10) y los Stats (todo a 0)
+            document.getElementById('hpInput').value = 20; 
+            document.getElementById('ppInput').value = 10;
+            ['atqInput', 'defInput', 'atqEspInput', 'defEspInput', 'velInput', 'ciInput'].forEach(id => document.getElementById(id).value = 0);
+            
+            // Le pedimos a las barras y la gráfica que se redibujen vacías
+            actualizarBarras(); 
+            actualizarGrafica();
+
+            // 3. Restauramos las imágenes a los símbolos de interrogación
+            document.getElementById('imagenPersonaje').src = "https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?";
+            document.getElementById('imgObj1').src = "https://via.placeholder.com/200/e0d8c3/8b4513";
+            document.getElementById('imgObj2').src = "https://via.placeholder.com/200/e0d8c3/8b4513";
+            document.getElementById('imgObj3').src = "https://via.placeholder.com/200/e0d8c3/8b4513";
+            
+            // Escondemos los controles de foto que aparecen cuando subes una imagen
+            const panelFoto = document.getElementById('panelAjusteFoto');
+            if (panelFoto) panelFoto.style.display = 'none';
+        }
+
+        function calcularPuntosMejora() {
+            if (personajeActualIndex === null) return;
+            const pj = campamento[personajeActualIndex];
+            let puntosTotales = pj.vitalidad.puntosAtributo || 0;
+            const ids = ['addAtq', 'addDef', 'addAtqEsp', 'addDefEsp', 'addVel', 'addCi'];
+            let sumaGastada = 0;
+
+            ids.forEach(id => {
+                let val = parseInt(document.getElementById(id).value) || 0;
+                if (val < 0) { val = 0; document.getElementById(id).value = 0; } // Evita trampas con números negativos
+                sumaGastada += val;
+            });
+
+            let disponibles = puntosTotales - sumaGastada;
+            const contador = document.getElementById('puntosMejora');
+
+            if (disponibles < 0) {
+                contador.innerHTML = `⚠️ Faltan Puntos (${disponibles})`;
+                contador.style.backgroundColor = '#ff4500'; 
+            } else {
+                contador.innerHTML = `Puntos: ${disponibles}`;
+                contador.style.backgroundColor = '#8b0000'; 
+            }
+        }
+
+        // --- LÓGICA DE LA VENTANA DE MEJORAS Y BOTÍN ---
+        function abrirModalMejoras() {
+            ['addDinero','addExp','addLvl','addHpMax','addPpMax','addAtq','addDef','addAtqEsp','addDefEsp','addVel','addCi'].forEach(id => document.getElementById(id).value = 0);
+            
+            // Llenar el desplegable mágicamente con la Enciclopedia
+            const selector = document.getElementById('selectorNuevoObjeto');
+            selector.innerHTML = '<option value="">-- Elige un objeto del Compendio --</option>';
+            
+            let consumibles = baseDeDatosCompendio.filter(i => i.tipo === 'consumible' || i.tipo === 'receta');
+            let equipos = baseDeDatosCompendio.filter(i => ['arma', 'armadura', 'reliquia'].includes(i.tipo));
+
+            if(consumibles.length > 0) {
+                let grupoConsumibles = '<optgroup label="🧪 Consumibles y Recetas">';
+                consumibles.forEach(c => grupoConsumibles += `<option value="${c.nombre}" data-tipo="consumible" data-desc="${c.desc.replace(/"/g, '&quot;')}">${c.nombre}</option>`);
+                selector.innerHTML += grupoConsumibles + '</optgroup>';
+            }
+            if(equipos.length > 0) {
+                let grupoEquipos = '<optgroup label="🛡️ Armamento y Reliquias">';
+                equipos.forEach(e => grupoEquipos += `<option value="${e.nombre}" data-tipo="equipo" data-desc="${e.desc.replace(/"/g, '&quot;')}">${e.nombre}</option>`);
+                selector.innerHTML += grupoEquipos + '</optgroup>';
+            }
+
+            calcularPuntosMejora();
+            document.getElementById('modalMejoras').style.display = 'flex';
+        }
+
+        function cerrarModalMejoras() {
+            document.getElementById('modalMejoras').style.display = 'none';
+        }
+
+        function aplicarMejoras() {
+            const pj = campamento[personajeActualIndex];
+            if (pj.vitalidad.puntosAtributo === undefined) pj.vitalidad.puntosAtributo = 0;
+
+            // --- 1. VALIDACIÓN DE PUNTOS DE ATRIBUTO ---
+            let sumaGastada = 0;
+            const stats = ['atq', 'def', 'atqEsp', 'defEsp', 'vel', 'ci'];
+            const inputs = ['addAtq', 'addDef', 'addAtqEsp', 'addDefEsp', 'addVel', 'addCi'];
+            
+            for(let i=0; i < stats.length; i++) {
+                let val = parseInt(document.getElementById(inputs[i]).value) || 0;
+                if (val > 0) sumaGastada += val;
+            }
+
+            if (sumaGastada > pj.vitalidad.puntosAtributo) {
+                alert("❌ ¡No tienes suficientes Puntos de Atributo disponibles para subir esos stats! Ajusta los valores.");
+                return; // Detiene la función y no te deja hacer trampa
+            }
+
+            // Si pasa la validación, restamos los puntos gastados y subimos las estadísticas
+            pj.vitalidad.puntosAtributo -= sumaGastada;
+            for(let i=0; i < stats.length; i++) {
+                let val = parseInt(document.getElementById(inputs[i]).value) || 0;
+                if (val > 0) pj.atributos[stats[i]] = (parseInt(pj.atributos[stats[i]]) || 0) + val;
+            }
+
+            // --- 2. VIDA Y PP EXTRA ---
+            let extraHp = parseInt(document.getElementById('addHpMax').value) || 0;
+            let extraPp = parseInt(document.getElementById('addPpMax').value) || 0;
+            pj.vitalidad.hpMax += extraHp; pj.vitalidad.hpActual += extraHp;
+            pj.vitalidad.ppMax += extraPp; pj.vitalidad.ppActual += extraPp;
+
+            // --- 3. MOTOR DE EXPERIENCIA Y NIVELES ---
+            if (pj.vitalidad.lvl === undefined) pj.vitalidad.lvl = 1;
+            if (pj.vitalidad.exp === undefined) pj.vitalidad.exp = 0;
+
+            let extraExp = parseInt(document.getElementById('addExp').value) || 0;
+            let extraLvl = parseInt(document.getElementById('addLvl').value) || 0;
+            // Matemática del Banco (Dinero)
+            if (pj.dinero === undefined) pj.dinero = 0;
+            let extraDinero = parseInt(document.getElementById('addDinero').value) || 0;
+            pj.dinero += extraDinero;
+            if (pj.dinero < 0) pj.dinero = 0; // Evita que se endeuden mágicamente
+            pj.vitalidad.exp += extraExp; 
+
+            let expNecesaria = pj.vitalidad.lvl * 100;
+            let nivelesGanados = 0;
+            let puntosNuevos = 0;
+            
+            // Bucle: Sube de nivel mientras la EXP alcance
+            while (pj.vitalidad.exp >= expNecesaria) {
+                pj.vitalidad.exp -= expNecesaria;
+                pj.vitalidad.lvl += 1;
+                nivelesGanados += 1;
+                
+                // Mágia: Da entre 3 y 5 puntos por cada nivel subido
+                let puntosAzar = Math.floor(Math.random() * 3) + 3; 
+                puntosNuevos += puntosAzar;
+                pj.vitalidad.puntosAtributo += puntosAzar;
+
+                expNecesaria = pj.vitalidad.lvl * 100; // El siguiente pide más
+            }
+
+            // Si el Game Master fuerza niveles manualmente
+            if (extraLvl > 0) {
+                for(let i=0; i < extraLvl; i++) {
+                    pj.vitalidad.lvl += 1;
+                    nivelesGanados += 1;
+                    let puntosAzar = Math.floor(Math.random() * 3) + 3; 
+                    puntosNuevos += puntosAzar;
+                    pj.vitalidad.puntosAtributo += puntosAzar;
+                }
+            }
+
+            // --- 4. OBJETOS Y BOTÍN (VERSIÓN ENCICLOPEDIA) ---
+            const selectObj = document.getElementById('selectorNuevoObjeto');
+            const opcionSelec = selectObj.options[selectObj.selectedIndex];
+
+            if (opcionSelec && opcionSelec.value !== '') {
+                if (!pj.baul) pj.baul = []; 
+                let agregado = false;
+                
+                let tipo = opcionSelec.getAttribute('data-tipo');
+                let nombreObj = opcionSelec.value;
+                let descObj = opcionSelec.getAttribute('data-desc');
+                
+                if (tipo === 'equipo') {
+                    for(let i=0; i<3; i++) { 
+                        if(!pj.equipo[i] || !pj.equipo[i].nombre || pj.equipo[i].nombre.trim() === '') {
+                            pj.equipo[i] = { nombre: nombreObj, descripcion: descObj }; 
+                            agregado = true; break;
+                        }
+                    }
+                    if(!agregado) {
+                        pj.baul.push({ tipo: 'equipo', nombre: nombreObj, descripcion: descObj });
+                        alert(`🛡️ ¡Tus manos están llenas!\nEl armamento "${nombreObj}" se ha guardado automáticamente en tu 🎒 Reserva.`);
+                    }
+                } else {
+                    for(let i=0; i<5; i++) { 
+                        let nombreEnBolsillo = typeof pj.inventario[i] === 'string' ? pj.inventario[i] : (pj.inventario[i] ? pj.inventario[i].nombre : "");
+                        if(!nombreEnBolsillo || nombreEnBolsillo.trim() === '') {
+                            pj.inventario[i] = { nombre: nombreObj, descripcion: descObj }; // Guarda el objeto COMPLETO
+                            agregado = true; break;
+                        }
+                    }
+                    if(!agregado) {
+                        pj.baul.push({ tipo: 'consumible', nombre: nombreObj, descripcion: descObj });
+                        alert(`🧪 ¡Tus bolsillos rápidos están llenos!\nEl objeto "${nombreObj}" se ha guardado automáticamente en tu 🎒 Reserva.`);
+                    }
+                }
+            }
+
+            // --- 5. REFRESCO VISUAL ---
+            actualizarBarrasVista();
+            if (radarChartVista) {
+                const a = pj.atributos;
+                radarChartVista.data.labels = [`Atq: ${a.atq||0}`, `Def: ${a.def||0}`, `Vel: ${a.vel||0}`, `C.I.: ${a.ci||0}`, `Def. Esp: ${a.defEsp||0}`, `Atq. Esp: ${a.atqEsp||0}`];
+                radarChartVista.data.datasets[0].data = [ a.atq||0, a.def||0, a.vel||0, a.ci||0, a.defEsp||0, a.atqEsp||0 ];
+                radarChartVista.update();
+            }
+            renderizarInventarioVista();
+            actualizarCampamento(); 
+            verPersonaje(personajeActualIndex); // Actualiza título
+
+            if (nivelesGanados > 0) {
+                let mensaje = `¡NIVEL AUMENTADO! 🎉\n${pj.identidad.nombre} ha alcanzado el Nivel ${pj.vitalidad.lvl}.\n`;
+                if (nivelesGanados > 1) {
+                    mensaje += `(¡Dio un salto de ${nivelesGanados} niveles de golpe!)\n`;
+                }
+                mensaje += `\n🌟 ¡Se hicieron ${nivelesGanados} tiradas de dados y ganaste un total de +${puntosNuevos} Puntos de Atributo!\nVuelve a abrir la ventana de "Nivel y Botín" para gastarlos y mejorar a tu personaje.`;
+                alert(mensaje);
+            }
+
+            cerrarModalMejoras();
+        }
+
+        // --- LÓGICA DEL EDITOR DE TEXTOS ---
+        function abrirModalEditar() {
+            const pj = campamento[personajeActualIndex];
+            
+            // Cargamos los datos actuales en las cajas de texto (El signo ? evita errores si el espacio estaba vacío)
+            document.getElementById('editHab1Nom').value = pj.habilidades[0]?.nombre || "";
+            document.getElementById('editHab1Desc').value = pj.habilidades[0]?.descripcion || "";
+            document.getElementById('editHab2Nom').value = pj.habilidades[1]?.nombre || "";
+            document.getElementById('editHab2Desc').value = pj.habilidades[1]?.descripcion || "";
+            document.getElementById('editHab3Nom').value = pj.habilidades[2]?.nombre || "";
+            document.getElementById('editHab3Desc').value = pj.habilidades[2]?.descripcion || "";
+            
+            document.getElementById('editAtq1Nom').value = pj.ataques[0]?.nombre || "";
+            document.getElementById('editAtq1Desc').value = pj.ataques[0]?.descripcion || "";
+            document.getElementById('editAtq2Nom').value = pj.ataques[1]?.nombre || "";
+            document.getElementById('editAtq2Desc').value = pj.ataques[1]?.descripcion || "";
+            document.getElementById('editAtq3Nom').value = pj.ataques[2]?.nombre || "";
+            document.getElementById('editAtq3Desc').value = pj.ataques[2]?.descripcion || "";
+
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        function cerrarModalEditar() {
+            document.getElementById('modalEditar').style.display = 'none';
+        }
+
+        function guardarEdicion() {
+            const pj = campamento[personajeActualIndex];
+            
+            // Sobrescribimos el arreglo de habilidades y ataques con lo nuevo
+            pj.habilidades[0] = { nombre: document.getElementById('editHab1Nom').value.trim(), descripcion: document.getElementById('editHab1Desc').value.trim() };
+            pj.habilidades[1] = { nombre: document.getElementById('editHab2Nom').value.trim(), descripcion: document.getElementById('editHab2Desc').value.trim() };
+            pj.habilidades[2] = { nombre: document.getElementById('editHab3Nom').value.trim(), descripcion: document.getElementById('editHab3Desc').value.trim() };
+            
+            pj.ataques[0] = { nombre: document.getElementById('editAtq1Nom').value.trim(), descripcion: document.getElementById('editAtq1Desc').value.trim() };
+            pj.ataques[1] = { nombre: document.getElementById('editAtq2Nom').value.trim(), descripcion: document.getElementById('editAtq2Desc').value.trim() };
+            pj.ataques[2] = { nombre: document.getElementById('editAtq3Nom').value.trim(), descripcion: document.getElementById('editAtq3Desc').value.trim() };
+
+            // Pequeña función para redibujar las listas en tiempo real
+            function llenarListaVista(idUl, arregloObjetos) {
+                const ul = document.getElementById(idUl); ul.innerHTML = ''; let hayAlgo = false;
+                if(arregloObjetos) {
+                    arregloObjetos.forEach(item => {
+                        if (item.nombre && item.nombre.trim() !== "") { 
+                            let desc = (item.descripcion && item.descripcion.trim() !== "") ? `<br><span style="font-size: 12px; color: #5c0000; font-weight: normal; font-style: italic;">${item.descripcion}</span>` : '';
+                            ul.innerHTML += `<li style="margin-bottom: 10px;">${item.nombre} ${desc}</li>`; hayAlgo = true; 
+                        }
+                    });
+                }
+                if (!hayAlgo) ul.innerHTML = '<li style="color: #666; font-style: italic;">Nada por aquí...</li>';
+            }
+
+            // Actualizamos la pantalla de fondo
+            llenarListaVista('vistaHabilidades', pj.habilidades);
+            llenarListaVista('vistaAtaques', pj.ataques);
+
+            cerrarModalEditar();
+        }
+
+        function filtrarCompendio() {
+            // --- Auto-Migración: Cambia los nombres viejos por los nuevos para que no pierdas tus datos ---
+            baseDeDatosCompendio.forEach(item => {
+                if(item.tipo === 'ataque_normal') item.tipo = 'tecnica_sin_pp';
+                if(item.tipo === 'movimiento_pokemon') item.tipo = 'magia';
+                if(item.tipo === 'movimiento_estado') item.tipo = 'tecnica_con_pp';
+                if(item.tipo === 'equipo' && !item.migrado) { item.tipo = 'armadura'; item.migrado = true; } // Convierte el equipo viejo en Armadura
+            });
+
+            const textoBusqueda = document.getElementById('buscadorCompendio').value.toLowerCase();
+            const categoriaSel = document.getElementById('filtroCategoria').value;
+            const elementoSel = document.getElementById('filtroElemento').value.toLowerCase(); 
+            const nivelSel = document.getElementById('filtroNivel').value;
+            const contenedor = document.getElementById('contenedorCompendio');
+            contenedor.innerHTML = ''; 
+
+            // --- REGLAS ESTRICTAS DE ORDENAMIENTO Y COLOR ---
+            const ordenCategorias = ['tecnica_sin_pp', 'arma', 'armadura', 'magia', 'tecnica_con_pp', 'consumible', 'receta', 'reliquia'];
+            const ordenElementos = ['normal', 'fuego', 'agua', 'planta', 'eléctrico', 'hielo', 'lucha', 'veneno', 'tierra', 'volador', 'psíquico', 'bicho', 'roca', 'fantasma', 'acero', 'siniestro', 'dragón', 'hada', 'astral', 'cuerpo a cuerpo', 'distancia o rango', 'ligera', 'media', 'pesada', 'curación', 'soporte'];
+            
+            const coloresElementos = {
+                'normal': '#696969', 'fuego': '#ff4500', 'agua': '#1e90ff', 'planta': '#228b22', 
+                'eléctrico': '#daa520', 'hielo': '#00ced1', 'lucha': '#8b0000', 'veneno': '#800080',
+                'tierra': '#8b4513', 'volador': '#4682b4', 'psíquico': '#c71585', 'bicho': '#6b8e23', 
+                'roca': '#a0522d', 'fantasma': '#4b0082', 'acero': '#708090', 'siniestro': '#2f4f4f', 
+                'dragón': '#0000cd', 'hada': '#ff1493', 'astral': '#483d8b', 
+                'cuerpo a cuerpo': '#8b0000', 'distancia o rango': '#2e8b57', 
+                'ligera': '#a9a9a9', 'media': '#808080', 'pesada': '#696969', 
+                'curación': '#ff69b4', 'soporte': '#32cd32', 'general': '#8b4513'
+            };
+
+            const titulosCat = {
+                'tecnica_sin_pp': '👊 Técnicas Sin PP',
+                'arma': '🗡️ Armas',
+                'armadura': '🛡️ Armaduras',
+                'magia': '✨ Magias / Mov. Pokémon',
+                'tecnica_con_pp': '🌀 Técnicas Con PP / Mov. Estado',
+                'consumible': '🧪 Consumibles y Pociones',
+                'receta': '🍲 Recetas Culinarias',
+                'reliquia': '🏺 Reliquias'
+            };
+
+            let agrupados = {};
+
+            // 1. Agrupamos
+            baseDeDatosCompendio.forEach((item, index) => {
+                const coincideTexto = item.nombre.toLowerCase().includes(textoBusqueda) || item.desc.toLowerCase().includes(textoBusqueda) || (item.elemento && item.elemento.toLowerCase().includes(textoBusqueda));
+                const coincideFiltroCat = categoriaSel === 'todos' || item.tipo === categoriaSel;
+                
+                let elemItem = item.elemento ? item.elemento.toLowerCase() : 'general';
+                const coincideFiltroElem = elementoSel === 'todos' || elemItem === elementoSel;
+
+                // Magia para el Filtro de Nivel
+                let nivelItem = item.nivel ? item.nivel.toString() : "1";
+                let coincideFiltroNivel = true;
+                if (nivelSel !== 'todos') {
+                    if (nivelSel === '4') coincideFiltroNivel = parseInt(nivelItem) >= 4; // Los niveles 4 o superiores cuentan como "Únicos"
+                    else coincideFiltroNivel = nivelItem === nivelSel;
+                }
+
+                if (coincideTexto && coincideFiltroCat && coincideFiltroElem && coincideFiltroNivel) {
+                    const claveGrupo = `${item.tipo} ::: ${elemItem}`;
+                    if (!agrupados[claveGrupo]) agrupados[claveGrupo] = [];
+                    agrupados[claveGrupo].push({ data: item, idOriginal: index });
+                }
+            });
+
+            // 2. Ordenamos Forzando tu lista
+            const claves = Object.keys(agrupados).sort((a, b) => {
+                const [catA, elemA] = a.split(' ::: ');
+                const [catB, elemB] = b.split(' ::: ');
+
+                const indexCatA = ordenCategorias.indexOf(catA);
+                const indexCatB = ordenCategorias.indexOf(catB);
+                
+                if (indexCatA !== indexCatB) {
+                    return (indexCatA === -1 ? 99 : indexCatA) - (indexCatB === -1 ? 99 : indexCatB);
+                }
+
+                const indexElemA = ordenElementos.indexOf(elemA);
+                const indexElemB = ordenElementos.indexOf(elemB);
+                return (indexElemA === -1 ? 99 : indexElemA) - (indexElemB === -1 ? 99 : indexElemB);
+            });
+            
+            if (claves.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:#8b0000; font-style:italic; font-size: 18px; margin-top: 30px;">No se encontraron pergaminos con esa información...</p>';
+                return;
+            }
+
+            // 3. Dibujamos
+            claves.forEach(clave => {
+                const partes = clave.split(' ::: ');
+                const tipoRaw = partes[0];
+                const elementoRaw = partes[1];
+                
+                const nombreCat = titulosCat[tipoRaw] || '📦 Otros Registros';
+                const nombreElem = elementoRaw.split(' ').map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1)).join(' '); 
+                const colorElem = coloresElementos[elementoRaw] || '#8b4513';
+
+                const banner = document.createElement('h2');
+                banner.style.backgroundColor = 'rgba(139, 69, 19, 0.9)'; banner.style.color = '#fffaf0';
+                banner.style.padding = '10px 15px'; banner.style.borderRadius = '5px';
+                banner.style.marginTop = '40px'; banner.style.marginBottom = '15px';
+                banner.style.fontSize = '22px'; banner.style.textAlign = 'left';
+                banner.style.border = `2px solid ${colorElem}`; banner.style.boxShadow = '3px 3px 0px rgba(0,0,0,0.3)';
+                banner.innerHTML = `${nombreCat} <span style="float: right; color: ${colorElem}; background: #fffaf0; padding: 2px 10px; border-radius: 5px; font-size: 16px; border: 1px solid ${colorElem}; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);">[ ${nombreElem} ]</span>`;
+                contenedor.appendChild(banner);
+
+                const rejilla = document.createElement('div');
+                rejilla.style.display = 'grid';
+                rejilla.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+                rejilla.style.gap = '15px';
+
+                agrupados[clave].forEach(obj => {
+                    const item = obj.data;
+                    const index = obj.idOriginal;
+                    
+                    let colorTema = '#8b0000'; let icono = '📦';
+                    if (tipoRaw === 'tecnica_sin_pp') { colorTema = '#8b0000'; icono = '👊'; }
+                    if (tipoRaw === 'arma') { colorTema = '#5c2e0b'; icono = '🗡️'; }
+                    if (tipoRaw === 'armadura') { colorTema = '#4682b4'; icono = '🛡️'; }
+                    if (tipoRaw === 'magia') { colorTema = '#ff8c00'; icono = '✨'; }
+                    if (tipoRaw === 'tecnica_con_pp') { colorTema = '#4b0082'; icono = '🌀'; }
+                    if (tipoRaw === 'consumible') { colorTema = '#32cd32'; icono = '🧪'; }
+                    if (tipoRaw === 'receta') { colorTema = '#228b22'; icono = '🍲'; }
+                    if (tipoRaw === 'reliquia') { colorTema = '#daa520'; icono = '🏺'; }
+
+                    const tarjeta = document.createElement('div');
+                    tarjeta.style.backgroundColor = 'rgba(255, 255, 240, 0.95)'; tarjeta.style.border = `2px solid ${colorTema}`;
+                    tarjeta.style.borderRadius = '8px'; tarjeta.style.padding = '15px'; tarjeta.style.boxShadow = '3px 3px 8px rgba(0,0,0,0.2)';
+
+                    let descFormateada = item.desc.replace(/\*\*(.*?)\*\*/g, '<b style="color: #5c0000;">$1</b>');
+                    if (item.tipo === 'receta') descFormateada = descFormateada.replace('\n\n', `<hr style="border: 0.5px dashed ${colorTema}; margin: 10px 0;">`);
+
+                    // Leemos el nivel y le damos su color/etiqueta
+                    let nivelNum = parseInt(item.nivel) || 1;
+                    let txtNivel = "🟢 Nv. 1";
+                    if(nivelNum === 2) txtNivel = "🔵 Nv. 2";
+                    if(nivelNum === 3) txtNivel = "🟣 Nv. 3";
+                    if(nivelNum >= 4) txtNivel = "🟠 Único";
+
+                    // Magia para la nueva etiqueta de clasificación (Solo aparece si escribiste algo)
+                    let etiquetaClasif = "";
+                    if (item.clasificacion && item.clasificacion !== "") {
+                        etiquetaClasif = `<span style="font-size: 11px; font-weight: bold; background: #4b0082; color: white; padding: 2px 6px; border-radius: 10px; box-shadow: 1px 1px 2px rgba(0,0,0,0.2);">${item.clasificacion}</span>`;
+                    }
+
+                    tarjeta.innerHTML = `
+                        <h3 style="margin: 0 0 5px 0; font-size: 18px; color: ${colorTema}; border-bottom: 1px solid ${colorTema}; padding-bottom: 5px;">${icono} ${item.nombre}</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12px; font-weight: bold; color: #5c0000;">${item.subtitulo}</span>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
+                                <span style="font-size: 11px; font-weight: bold; background: #fff; color: #333; padding: 2px 6px; border-radius: 10px; border: 1px solid #ccc; box-shadow: 1px 1px 2px rgba(0,0,0,0.1);">${txtNivel}</span>
+                                ${etiquetaClasif}
+                                <span style="font-size: 11px; font-weight: bold; background: ${colorElem}; color: white; padding: 2px 6px; border-radius: 10px; box-shadow: 1px 1px 2px rgba(0,0,0,0.2);">${item.elemento || 'General'}</span>
+                            </div>
+                        </div>
+                        <p style="margin: 0; font-size: 14px; font-style: italic; color: #3e2723; line-height: 1.4; white-space: pre-wrap;">${descFormateada}</p>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px dashed ${colorTema}; padding-top: 10px;">
+                            <button class="btn-usar" style="background-color: #4b0082; border-color: #290048; float: none;" onclick="abrirModalCompendio(${index})">✏️ Editar</button>
+                            <button class="btn-usar" style="background-color: #8b0000; border-color: #5c0000; float: none;" onclick="borrarItemCompendio(${index})">🗑️ Borrar</button>
+                        </div>
+                    `;
+                    rejilla.appendChild(tarjeta);
+                });
+                contenedor.appendChild(rejilla);
+            });
+        }
+
+        // --- SISTEMA COMPENDIO CRUD ---
+        function abrirModalCompendio(index) {
+            if (index === -1) {
+                // Modo: NUEVO REGISTRO (Aquí estaba el bug, ahora limpiamos todo)
+                document.getElementById('tituloModalCompendio').innerText = "✨ Forjar Nuevo Registro";
+                document.getElementById('editCompTipo').value = "tecnica_sin_pp";
+                document.getElementById('editCompNivel').value = "1"; 
+                document.getElementById('editCompClasif').value = ""; // ¡Bug arreglado!
+                document.getElementById('editCompElemento').value = "";
+                document.getElementById('editCompNombre').value = "";
+                document.getElementById('editCompSubtitulo').value = "";
+                document.getElementById('editCompDesc').value = "";
+                document.getElementById('editCompIndex').value = -1;
+            } else {
+                // Modo: EDITAR REGISTRO
+                document.getElementById('tituloModalCompendio').innerText = "✏️ Editar Registro";
+                const item = baseDeDatosCompendio[index];
+                document.getElementById('editCompTipo').value = item.tipo || "tecnica_sin_pp";
+                document.getElementById('editCompNivel').value = item.nivel || "1"; 
+                document.getElementById('editCompClasif').value = item.clasificacion || "";
+                document.getElementById('editCompElemento').value = item.elemento || "";
+                document.getElementById('editCompNombre').value = item.nombre;
+                document.getElementById('editCompSubtitulo').value = item.subtitulo;
+                document.getElementById('editCompDesc').value = item.desc;
+                document.getElementById('editCompIndex').value = index;
+            }
+            document.getElementById('modalCompendio').style.display = 'flex';
+        }
+
+        function cerrarModalCompendio() { document.getElementById('modalCompendio').style.display = 'none'; }
+
+        function guardarItemCompendio() {
+            const index = parseInt(document.getElementById('editCompIndex').value);
+            
+            const nuevoObjeto = {
+                tipo: document.getElementById('editCompTipo').value,
+                nivel: parseInt(document.getElementById('editCompNivel').value) || 1,
+                clasificacion: document.getElementById('editCompClasif').value.trim(),
+                elemento: document.getElementById('editCompElemento').value.trim() || "General",
+                nombre: document.getElementById('editCompNombre').value.trim() || "Sin Nombre",
+                subtitulo: document.getElementById('editCompSubtitulo').value.trim(),
+                desc: document.getElementById('editCompDesc').value.trim()
+            };
+
+            if (index === -1) { baseDeDatosCompendio.push(nuevoObjeto); } 
+            else { baseDeDatosCompendio[index] = nuevoObjeto; }
+
+            cerrarModalCompendio();
+            filtrarCompendio(); 
+        }
+
+        function borrarItemCompendio(index) {
+            if (confirm(`¿Borrar el registro de "${baseDeDatosCompendio[index].nombre}" para siempre?`)) {
+                baseDeDatosCompendio.splice(index, 1); 
+                filtrarCompendio(); 
+            }
+        }
+
+        async function cargarCompendio() {
+            try {
+                let contenido = "";
+                
+                // Abre la ventana clásica de Windows para ELEGIR el archivo
+                if (window.showOpenFilePicker) {
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'Archivos de Enciclopedia',
+                            accept: {
+                                'text/javascript': ['.js'],
+                                'application/json': ['.json']
+                            }
+                        }],
+                        multiple: false
+                    });
+                    
+                    const archivo = await fileHandle.getFile();
+                    contenido = await archivo.text();
+                } else {
+                    alert("Tu navegador no soporta esta función moderna de Windows.");
+                    return;
+                }
+
+                // Truco mágico: Extraer los datos limpios
+                let inicio = contenido.indexOf('[');
+                let fin = contenido.lastIndexOf(']');
+                
+                if (inicio === -1 || fin === -1) throw new Error("El archivo no tiene el formato correcto.");
+                
+                let datosLimpios = contenido.substring(inicio, fin + 1);
+                let nuevosDatos = JSON.parse(datosLimpios);
+
+                // Vaciamos la enciclopedia actual y le inyectamos los nuevos datos al vuelo
+                baseDeDatosCompendio.length = 0; 
+                baseDeDatosCompendio.push(...nuevosDatos);
+
+                filtrarCompendio(); // Refrescamos la pantalla para que veas los cambios de inmediato
+                alert("¡Enciclopedia recargada en vivo! 🪄");
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Error al cargar:", err);
+                    alert("❌ Error al leer el archivo. Asegúrate de seleccionar un archivo válido.\n" + err.message);
+                }
+            }
+        }
+
+        // --- LÓGICA DEL DIARIO DE HISTORIA ---
+        function abrirModalHistoria() {
+            const pj = campamento[personajeActualIndex];
+            
+            // Protección: Si el personaje se hizo antes de tener historia, le creamos el espacio vacío
+            if (!pj.historia) pj.historia = { titulo: "", texto: "", objetivos: [{}, {}, {}] };
+            if (!pj.historia.objetivos) pj.historia.objetivos = [{}, {}, {}];
+
+            // Cargamos los textos
+            document.getElementById('editHistTitulo').value = pj.historia.titulo || "";
+            document.getElementById('editHistTexto').value = pj.historia.texto || "";
+            
+            // Cargamos las 3 imágenes y nombres de objetivos
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById('editHistObj' + i).value = pj.historia.objetivos[i-1]?.nombre || "";
+                document.getElementById('editHistImg' + i).src = pj.historia.objetivos[i-1]?.fotoBase64 || "https://via.placeholder.com/200/e0d8c3/8b4513";
+            }
+
+            document.getElementById('modalHistoria').style.display = 'flex';
+        }
+
+        function cambiarFotoModal(event, num) {
+            const arch = event.target.files[0]; 
+            if(arch){ 
+                const lec = new FileReader(); 
+                lec.onload = function(evt){ 
+                    // Muestra la foto nueva mágicamente en la cajita
+                    document.getElementById('editHistImg'+num).src = evt.target.result; 
+                }; 
+                lec.readAsDataURL(arch); 
+            }
+        }
+
+        function guardarModalHistoria() {
+            const pj = campamento[personajeActualIndex];
+            
+            // Guardamos todo de vuelta en el cerebro del personaje
+            pj.historia.titulo = document.getElementById('editHistTitulo').value;
+            pj.historia.texto = document.getElementById('editHistTexto').value;
+            
+            for (let i = 1; i <= 3; i++) {
+                pj.historia.objetivos[i-1] = { 
+                    nombre: document.getElementById('editHistObj' + i).value, 
+                    fotoBase64: document.getElementById('editHistImg' + i).src 
+                };
+            }
+
+            document.getElementById('modalHistoria').style.display = 'none';
+            // Como le pusimos Auto-Guardado, no necesitas hacer nada más, pero avisamos.
+            alert("¡El Diario del Aventurero ha sido actualizado! 📜");
+        }
+    </script>
+</body>
+</html>
