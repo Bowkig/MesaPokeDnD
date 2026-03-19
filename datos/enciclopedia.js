@@ -1858,5 +1858,41 @@ let baseDeDatosCompendio = [
         "nombre": "Hielo Seco",
         "subtitulo": "Hielo+",
         "desc": "Un bloque de hielo especial que no se derrite convirtiéndose en agua, sino que emite una niebla blanca y muy espesa.\n\n[Uso en Exploración]: Si se lanza al suelo, crea una densa cortina de niebla que otorga cobertura para escapar o esconderse. Tocarlo con las manos desnudas por mucho tiempo puede causar daño leve.\n[Uso Culinario]: Se usa constantemente en hieleras para mantener el Pescado Fresco y otros ingredientes crudos en perfecto estado durante varios días."
+    },
+    {
+        "tipo": "reliquia",
+        "nivel": 1,
+        "clasificacion": "???",
+        "elemento": "Ligera",
+        "nombre": "Banda Rara",
+        "subtitulo": "Objeto Extraño",
+        "desc": "Objeto con un pequeño lugar para poner un Orbe."
+    },
+    {
+        "tipo": "armadura",
+        "nivel": 4,
+        "clasificacion": "Mejora",
+        "elemento": "Ligera",
+        "nombre": "Bandana de Chef",
+        "subtitulo": "Premio Curativo",
+        "desc": "Bandana especial entre chefs. Tiene el nombre de la persona que la gana. (+1 Atq. y 2 C.I. (solo para recetas)).\nAdemas, te curas +1 HP cada turno que pasa."
+    },
+    {
+        "tipo": "armadura",
+        "nivel": 2,
+        "clasificacion": "Mejora",
+        "elemento": "Media",
+        "nombre": "Mini delantal",
+        "subtitulo": "Delantal",
+        "desc": "Delantal algo sucio pero muy resistente. (+1 Def. y +1 Def. Esp.)"
+    },
+    {
+        "tipo": "arma",
+        "nivel": 3,
+        "clasificacion": "Mejora",
+        "elemento": "Media",
+        "nombre": "Guantes de Cocinero",
+        "subtitulo": "Orgullo+",
+        "desc": "Estos guantes parecen muy especiales para ciertos chef. (+4 Atq.)."
     }
 ];

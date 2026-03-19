@@ -111,8 +111,8 @@
 <body>
 
     <body>
-    <audio id="musicaTema" loop>
-        <source src="Passport Setup-Mario Party Advance Music Extended.mp3" type="audio/mpeg">
+    <audio id="musicaTema" loop oncanplay="this.volume = 0.3">
+        <source src="music/fichacharacter.mp3" type="audio/mpeg">
     </audio>
 
     <div class="contenedor-pergamino">
@@ -437,10 +437,7 @@
             <p style="text-align: center; font-style: italic;">Sube los archivos .json de tu equipo para verlos aquí.</p>
             
             <div style="text-align: center; margin-bottom: 20px;">
-                <label for="subirJson" style="cursor: pointer; background-color: #8b4513; color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-block;">
-                    📂 Cargar Personajes (.json)
-                </label>
-                <input type="file" id="subirJson" accept=".json" multiple style="display: none;" onchange="cargarPersonajesJSON(event)">
+                <button onclick="cargarPersonajesJS()" class="btn-primario" style="margin-bottom: 15px;">⛺ Cargar Explorador</button>
             </div>
 
             <div id="cuadriculaCampamento" class="cuadricula-menu">
@@ -454,7 +451,20 @@
                     <div class="marco-foto" style="margin: 0 auto 10px auto;"><img id="vistaImg" src=""></div>
                     <h2 id="vistaNombre" style="margin-bottom: 0; border: none; padding: 0;">Nombre</h2>
                     <span id="vistaEspecie" style="font-style: italic; color: #5c0000;">Especie</span>
-                    
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-size: 13px; font-weight: bold; color: #8b4513;">⚖️ Moral:</span>
+                        <select id="vistaAlineamiento" onchange="cambiarAlineamiento(this.value)" style="font-family: inherit; font-size: 13px; color: #5c0000; background-color: #fffaf0; border: 1px solid #a0522d; border-radius: 4px; padding: 2px; cursor: pointer;">
+                            <option value="Legal Bueno">Legal Bueno</option>
+                            <option value="Neutral Bueno">Neutral Bueno</option>
+                            <option value="Caótico Bueno">Caótico Bueno</option>
+                            <option value="Legal Neutral">Legal Neutral</option>
+                            <option value="Neutral Verdadero">Neutral Verdadero</option>
+                            <option value="Caótico Neutral">Caótico Neutral</option>
+                            <option value="Legal Malvado">Legal Malvado</option>
+                            <option value="Neutral Malvado">Neutral Malvado</option>
+                            <option value="Caótico Malvado">Caótico Malvado</option>
+                        </select>
+                    </div>
                     <div class="etiqueta-barra" style="margin-top: 20px;">
                         <span>HP</span>
                         <div>
@@ -510,8 +520,8 @@
             <div style="background-color: rgba(139, 69, 19, 0.1); padding: 15px; border-radius: 8px; border: 2px dashed #8b4513; margin-bottom: 25px; text-align: center;">
                 
                 <div style="margin-bottom: 15px;">
-                    <button class="btn-pequeno" style="background-color: #2f4f4f; border-color: #1a2b2b; margin: 0 5px;" onclick="descargarCompendio()">💾 Guardar Enciclopedia (.json)</button>
-                    <button class="btn-usar" style="background-color: #2e8b57; border-color: #006400;" onclick="cargarCompendio()">📂 Cargar Enciclopedia (.js)</button>
+                    <button class="btn-pequeno" style="background-color: #2f4f4f; border-color: #1a2b2b; margin: 0 5px;" onclick="descargarCompendio()">💾 Guardar Enciclopedia</button>
+                    <button class="btn-usar" style="background-color: #2e8b57; border-color: #006400;" onclick="cargarCompendio()">📂 Cargar Enciclopedia</button>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px;">
@@ -581,7 +591,8 @@
                 <div class="columna-izquierda">
                     <div class="seccion-foto">
                         <div class="marco-foto"><img id="imagenPersonaje" src="https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?" alt="Retrato"></div>
-                        <input type="file" id="subirFoto" accept="image/*" onchange="cargarFoto(event)">
+                        <!---<input type="file" id="subirFoto" accept="image/*" onchange="cargarFoto(event)">--->
+                        <button type="button" onclick="cargarFotoAvanzada()" style="padding: 10px; background-color: #8b4513; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: inherit;">📷 Buscar Foto en la PC</button>
                         <div id="panelAjusteFoto" style="display: none; width: 100%; margin-top: 15px;">
                             <label style="font-size: 12px; margin-top: 0; text-align: center;">🔍 Zoom</label>
                             <input type="range" id="zoomFoto" min="1" max="3" step="0.1" value="1" oninput="ajustarFoto()">
@@ -595,6 +606,18 @@
                     <div class="cuadricula-stats">
                         <div><label>Nombre:</label><input type="text" id="nombreInput"></div>
                         <div><label>Especie:</label><input type="text" id="especieInput"></div>
+                        <label style="font-family: inherit; color: #8b0000; font-size: 14px; margin-top: 5px; display: block;">⚖️ Alineamiento Moral:</label>
+            <select id="alineamientoInput" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;">
+                <option value="Legal Bueno">Legal Bueno</option>
+                <option value="Neutral Bueno">Neutral Bueno</option>
+                <option value="Caótico Bueno">Caótico Bueno</option>
+                <option value="Legal Neutral">Legal Neutral</option>
+                <option value="Neutral Verdadero" selected>Neutral Verdadero</option>
+                <option value="Caótico Neutral">Caótico Neutral</option>
+                <option value="Legal Malvado">Legal Malvado</option>
+                <option value="Neutral Malvado">Neutral Malvado</option>
+                <option value="Caótico Malvado">Caótico Malvado</option>
+            </select>
                     </div>
 
                     <h3 style="display: flex; justify-content: space-between; align-items: center;">
@@ -628,10 +651,23 @@
                     <div class="grupo-ataque"><input type="text" id="habilidad1Nombre"><textarea id="habilidad1Desc"></textarea></div><div class="grupo-ataque"><input type="text" id="habilidad2Nombre"><textarea id="habilidad2Desc"></textarea></div>
                     <h3>Ataques Básicos (Sin PP)</h3>
                     <div class="grupo-ataque"><input type="text" id="ataque1Nombre"><textarea id="ataque1Desc"></textarea></div><div class="grupo-ataque"><input type="text" id="ataque2Nombre"><textarea id="ataque2Desc"></textarea></div>
-                    <h3>Equipamiento (Máx 3)</h3>
-                    <div class="grupo-equipo"><input type="text" id="equipo1Nombre"><textarea id="equipo1Desc"></textarea></div><div class="grupo-equipo"><input type="text" id="equipo2Nombre"><textarea id="equipo2Desc"></textarea></div><div class="grupo-equipo"><input type="text" id="equipo3Nombre"><textarea id="equipo3Desc"></textarea></div>
-                    <h3>Inventario (Máx 5)</h3>
-                    <div><input type="text" id="obj1"></div><div><input type="text" id="obj2"></div><div><input type="text" id="obj3"></div><div><input type="text" id="obj4"></div><div><input type="text" id="obj5"></div>
+                    <h3>⚔️ Equipamiento (Nv. 1)</h3>
+            
+                    <select id="creadorEquip1" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;"></select>
+                    <div id="descEquip1" style="margin-bottom: 10px; padding: 8px; border: 1px dashed #a0522d; background-color: rgba(255, 255, 255, 0.5); font-size: 13px; color: #5c3a21; display: none; text-align: left; border-radius: 4px;"></div>
+                    <select id="creadorEquip2" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;"></select>
+                    <div id="descEquip2" style="margin-bottom: 10px; padding: 8px; border: 1px dashed #a0522d; background-color: rgba(255, 255, 255, 0.5); font-size: 13px; color: #5c3a21; display: none; text-align: left; border-radius: 4px;"></div>
+                    <select id="creadorEquip3" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;"></select>
+                    <div id="descEquip3" style="margin-bottom: 15px; padding: 8px; border: 1px dashed #a0522d; background-color: rgba(255, 255, 255, 0.5); font-size: 13px; color: #5c3a21; display: none; text-align: left; border-radius: 4px;"></div>
+
+                    <h3>🧪 Consumibles (Máx 3 Nv. 1)</h3>
+                    
+                    <select id="creadorCons1" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;"></select>
+                    <div id="descCons1" style="margin-bottom: 10px; padding: 8px; border: 1px dashed #a0522d; background-color: rgba(255, 255, 255, 0.5); font-size: 13px; color: #5c3a21; display: none; text-align: left; border-radius: 4px;"></div>
+                    <select id="creadorCons2" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;"></select>
+                    <div id="descCons2" style="margin-bottom: 10px; padding: 8px; border: 1px dashed #a0522d; background-color: rgba(255, 255, 255, 0.5); font-size: 13px; color: #5c3a21; display: none; text-align: left; border-radius: 4px;"></div>
+                    <select id="creadorCons3" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box;"></select>
+                    <div id="descCons3" style="margin-bottom: 10px; padding: 8px; border: 1px dashed #a0522d; background-color: rgba(255, 255, 255, 0.5); font-size: 13px; color: #5c3a21; display: none; text-align: left; border-radius: 4px;"></div>
                 </div>
             </div> 
             <button onclick="cambiarPantalla('pantallaHistoria')">Siguiente: Historia ➔</button>
@@ -655,7 +691,7 @@
             <div class="layout-principal">
                 <div class="columna-izquierda" style="text-align: center;">
                     <div class="marco-foto" style="margin: 0 auto 10px auto;"><img id="imgResumen" src=""></div>
-                    <h2 id="resumenNombre">Nombre</h2><span id="resumenEspecie">Especie</span>
+                    <h2 id="resumenNombre">Nombre</h2><span id="resumenEspecie">Especie</span> | <span id="resumenAlineamiento" style="font-style: italic; color: #8b4513;">Alineamiento</span>
                     <div class="etiqueta-barra" style="margin-top: 20px;"><span>HP</span><span id="resumenTextoHP"></span></div><div class="barra-fondo"><div id="resumenBarraHP" class="barra-relleno color-hp"></div></div>
                     <div class="etiqueta-barra"><span>PP</span><span id="resumenTextoPP"></span></div><div class="barra-fondo"><div id="resumenBarraPP" class="barra-relleno color-pp"></div></div>
                     <div class="area-grafica"><canvas id="graficaRadarResumen"></canvas></div>
@@ -666,7 +702,7 @@
                     <h3>Inventario</h3><ul id="listaObjetos" class="lista-resumen"></ul>
                 </div>
             </div>
-            <div class="contenedor-botones"><button class="btn-secundario" onclick="cambiarPantalla('pantallaHistoria')">⬅ Corregir</button><button onclick="guardarPersonaje()">💾 Guardar JSON</button></div>
+            <div class="contenedor-botones"><button class="btn-secundario" onclick="cambiarPantalla('pantallaHistoria')">⬅ Corregir</button><button onclick="guardarPersonaje()">💾 Guardar Heroe</button></div>
         </div>
     </div>
     
@@ -880,7 +916,7 @@
                     // Si entramos a cualquier parte del Creador de Personajes...
                     if (pantallaDestino === 'pantallaStats' || pantallaDestino === 'pantallaHistoria' || pantallaDestino === 'pantallaResumen') {
                         if (musica.paused) {
-                            musica.volume = 1; // Aseguramos que el volumen esté al máximo
+                            musica.volume = 0.2; // Aseguramos que el volumen esté al máximo
                             musica.play().catch(e => console.log("El navegador pide un primer clic antes de reproducir audio."));
                         }
                     } else {
@@ -1072,6 +1108,7 @@
             document.getElementById('textoPP').innerText = pp+' / 30'; 
         }
 
+        //Calcula los puntos que te da al iniciar la creacion de personaje (siendo Max.: 8)
         function calcularPuntosAtributos() {
             const maxPuntos = 8; // Puntos iniciales para gastar
             const ids = ['atqInput', 'defInput', 'atqEspInput', 'defEspInput', 'velInput', 'ciInput'];
@@ -1110,19 +1147,62 @@
             }); 
         });
 
-        function cargarFoto(e) { const arch = e.target.files[0]; if(arch){ const lec = new FileReader(); lec.onload = function(evt){ document.getElementById('imagenPersonaje').src = evt.target.result; document.getElementById('panelAjusteFoto').style.display='block'; document.getElementById('zoomFoto').value=1; document.getElementById('xFoto').value=50; document.getElementById('yFoto').value=50; ajustarFoto(); }; lec.readAsDataURL(arch); } }
+        //function cargarFoto(e) { const arch = e.target.files[0]; if(arch){ const lec = new FileReader(); lec.onload = function(evt){ document.getElementById('imagenPersonaje').src = evt.target.result; document.getElementById('panelAjusteFoto').style.display='block'; document.getElementById('zoomFoto').value=1; document.getElementById('xFoto').value=50; document.getElementById('yFoto').value=50; ajustarFoto(); }; lec.readAsDataURL(arch); } }
+        // --- NUEVA FUNCIÓN QUE FUERZA LA VENTANA DE WINDOWS ---
+        async function cargarFotoAvanzada() {
+            try {
+                // Obligamos a abrir el explorador de archivos nativo de Windows
+                if (window.showOpenFilePicker) {
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'Imágenes',
+                            accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }
+                        }],
+                        multiple: false
+                    });
+                    
+                    const archivo = await fileHandle.getFile();
+                    const lec = new FileReader();
+                    
+                    lec.onload = function(evt) {
+                        // Ponemos la foto y reiniciamos los valores del zoom
+                        document.getElementById('imagenPersonaje').src = evt.target.result;
+                        document.getElementById('panelAjusteFoto').style.display = 'block';
+                        document.getElementById('zoomFoto').value = 1;
+                        document.getElementById('xFoto').value = 50;
+                        document.getElementById('yFoto').value = 50;
+                        ajustarFoto(); // Llamamos a tu función que ya funciona perfecto
+                    };
+                    
+                    lec.readAsDataURL(archivo);
+                }
+            } catch (err) {
+                // Si el usuario cancela la ventana, no hacemos nada y evitamos errores
+                if (err.name !== 'AbortError') {
+                    console.error("Error al cargar la imagen:", err);
+                }
+            }
+        }
         function ajustarFoto() { const img = document.getElementById('imagenPersonaje'); img.style.objectPosition = `${document.getElementById('xFoto').value}% ${document.getElementById('yFoto').value}%`; img.style.transformOrigin = `${document.getElementById('xFoto').value}% ${document.getElementById('yFoto').value}%`; img.style.transform = `scale(${document.getElementById('zoomFoto').value})`; }
         function cargarFotoObjetivo(e, num) { const arch = e.target.files[0]; if(arch){ const lec = new FileReader(); lec.onload = function(evt){ document.getElementById('imgObj'+num).src = evt.target.result; }; lec.readAsDataURL(arch); } }
 
+        //Pantalla Resumen para que se vea la mayoria de cosas
         function prepararResumen() {
             const imgOrig = document.getElementById('imagenPersonaje'); const imgRes = document.getElementById('imgResumen');
             imgRes.src = imgOrig.src; imgRes.style.objectPosition = imgOrig.style.objectPosition; imgRes.style.transformOrigin = imgOrig.style.transformOrigin; imgRes.style.transform = imgOrig.style.transform;
             document.getElementById('resumenNombre').innerText = document.getElementById('nombreInput').value || 'Héroe Sin Nombre'; document.getElementById('resumenEspecie').innerText = document.getElementById('especieInput').value || 'Especie Desconocida';
+            document.getElementById('resumenAlineamiento').innerText = document.getElementById('alineamientoInput').value;
             document.getElementById('resumenTextoHP').innerText = document.getElementById('textoHP').innerText; document.getElementById('resumenBarraHP').style.width = document.getElementById('barraHP').style.width;
             document.getElementById('resumenTextoPP').innerText = document.getElementById('textoPP').innerText; document.getElementById('resumenBarraPP').style.width = document.getElementById('barraPP').style.width;
             if (radarChartResumen) radarChartResumen.data.datasets[0].data = radarChart.data.datasets[0].data;
             function llenarLista(id, campos) { const ul = document.getElementById(id); ul.innerHTML = ''; campos.forEach(c => { const val = document.getElementById(c).value; if(val.trim()!=='') ul.innerHTML += `<li>${val}</li>`; }); if(ul.innerHTML==='') ul.innerHTML = '<li style="color:#666;font-style:italic;">Vacío</li>'; }
-            llenarLista('listaHabilidades', ['habilidad1Nombre', 'habilidad2Nombre']); llenarLista('listaAtaques', ['ataque1Nombre', 'ataque2Nombre']); llenarLista('listaObjetos', ['equipo1Nombre', 'equipo2Nombre', 'equipo3Nombre', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5']);
+            
+            llenarLista('listaHabilidades', ['habilidad1Nombre', 'habilidad2Nombre']); 
+            llenarLista('listaAtaques', ['ataque1Nombre', 'ataque2Nombre']); 
+            
+            // ---> ESTA ES LA LÍNEA QUE CAMBIA <---
+            llenarLista('listaObjetos', ['creadorEquip1', 'creadorEquip2', 'creadorEquip3', 'creadorCons1', 'creadorCons2', 'creadorCons3']);
+            
             cambiarPantalla('pantallaResumen'); 
         }
 
@@ -1130,21 +1210,50 @@
         let campamento = [];
         let personajeActualIndex = null; // Nos dice qué personaje estamos viendo actualmente
 
-        function cargarPersonajesJSON(event) {
-            const archivos = event.target.files;
-            for (let i = 0; i < archivos.length; i++) {
-                const lector = new FileReader();
-                lector.onload = function(e) {
-                    try {
-                        const personaje = JSON.parse(e.target.result);
-                        campamento.push(personaje); 
-                        actualizarCampamento(); 
-                    } catch (error) { alert("Error leyendo el archivo."); }
-                };
-                lector.readAsText(archivos[i]);
+        // --- NUEVA FUNCIÓN PARA CARGAR PERSONAJES .JS ---
+        async function cargarPersonajesJS() {
+            try {
+                if (window.showOpenFilePicker) {
+                    // Abrimos la ventana de Windows (permitiendo seleccionar varios a la vez)
+                    const fileHandles = await window.showOpenFilePicker({
+                        types: [{ description: 'Fichas de Rol (.js)', accept: {'text/javascript': ['.js']} }],
+                        multiple: true 
+                    });
+                    
+                    let reclutados = 0;
+
+                    for (const fileHandle of fileHandles) {
+                        const archivo = await fileHandle.getFile();
+                        let contenido = await archivo.text();
+                        
+                        // Recortamos el texto extra del .js para quedarnos solo con los datos
+                        let inicio = contenido.indexOf('{');
+                        let fin = contenido.lastIndexOf('}');
+                        
+                        if (inicio !== -1 && fin !== -1) {
+                            let pjGuardado = JSON.parse(contenido.substring(inicio, fin + 1));
+                            campamento.push(pjGuardado); // Lo metemos a tu arreglo original
+                            reclutados++;
+                        }
+                    }
+                    
+                    // Actualizamos la pantalla visual del campamento
+                    actualizarCampamento(); 
+                    
+                    if (reclutados > 0) {
+                        alert(`¡Se han unido ${reclutados} explorador(es) al campamento! 🏕️`);
+                    }
+                }
+            } catch (err) {
+                // Evitamos que salga error si el jugador simplemente cierra la ventana de Windows sin elegir nada
+                if (err.name !== 'AbortError') {
+                    console.error("Error al leer la ficha: ", err);
+                    alert("Hubo un error al intentar leer los archivos.");
+                }
             }
         }
 
+        //actualizador del campamento.
         function actualizarCampamento() {
             const contenedor = document.getElementById('cuadriculaCampamento');
             contenedor.innerHTML = ''; 
@@ -1155,6 +1264,9 @@
                 
                 const nombre = pj.identidad.nombre || "Desconocido";
                 const especie = pj.identidad.especie || "???";
+                // --- NUEVO: Leemos el alineamiento (con escudo protector) ---
+                const alineamiento = pj.identidad.alineamiento || "Sin Alineamiento"; 
+                
                 const foto = pj.identidad.fotoBase64 || "https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?";
                 const nivel = pj.vitalidad.lvl || 1; // Lee el nivel
                 
@@ -1170,6 +1282,9 @@
                     <h3 style="margin: 5px 0 0 0; font-size: 18px;">${nombre} <span style="background: #d4af37; color: #3e2723; padding: 2px 6px; border-radius: 4px; font-size: 12px; vertical-align: middle;">Lvl: ${nivel}</span></h3>
                     <span style="font-size: 13px; color: #5c0000; font-style: italic;">${especie}</span>
                     <span style="font-size: 13px; font-weight: bold; color: #b8860b; margin-left: 5px;">| 💰 ${pj.dinero || 0} Poke's</span>
+                    
+                    <div style="font-size: 12px; color: #6b4226; margin-top: 4px; font-weight: bold;">⚖️ ${alineamiento}</div>
+                    
                     <div style="margin-top: 10px; width: 100%; text-align: center; font-weight: bold; background: #32cd32; color: #fff; padding: 5px; border-radius: 5px; border: 1px solid #1e7d1e;">HP: ${hpActual} / ${hpMax}</div>
                 `;
                 tarjeta.onclick = function() { verPersonaje(index); };
@@ -1186,6 +1301,9 @@
                 ' <span style="background: #d4af37; color: #3e2723; padding: 2px 8px; border-radius: 5px; font-size: 14px; vertical-align: middle;">Lvl: ' + (pj.vitalidad.lvl || 1) + '</span>' + 
                 ' <span style="background: #e6c200; color: #8b4513; padding: 2px 8px; border-radius: 5px; font-size: 14px; vertical-align: middle; margin-left: 5px;">💰 ' + dineroActual + ' Poke\'s</span>';
             document.getElementById('vistaEspecie').innerText = pj.identidad.especie || "???";
+            
+            // --- NUEVO: Carga el alineamiento en el menú (si no tiene, pone Neutral Verdadero) ---
+            document.getElementById('vistaAlineamiento').value = pj.identidad.alineamiento || "Neutral Verdadero";
             
             const imgVista = document.getElementById('vistaImg');
             imgVista.src = pj.identidad.fotoBase64 || "https://via.placeholder.com/160x160/e0d8c3/8b4513?text=?";
@@ -1239,6 +1357,14 @@
             renderizarInventarioVista(); 
 
             cambiarPantalla('pantallaVistaPersonaje');
+        }
+
+        // --- NUEVA FUNCIÓN: Guarda el alineamiento si lo cambian en vivo ---
+        function cambiarAlineamiento(nuevoValor) {
+            if (typeof personajeActualIndex !== 'undefined' && campamento[personajeActualIndex]) {
+                campamento[personajeActualIndex].identidad.alineamiento = nuevoValor;
+                actualizarCampamento(); // Actualiza las tarjetas del fondo silenciosamente
+            }
         }
 
         // Funciones interactivas de Combate
@@ -1516,7 +1642,7 @@
             }
 
             const pj = campamento[indexComprador];
-            const nivelRequerido = 5; 
+            const nivelRequerido = 20; 
             const nivelPj = pj.vitalidad.lvl || 1;
 
             if (nivelPj < nivelRequerido) {
@@ -1655,7 +1781,8 @@
                 if (window.showSaveFilePicker) {
                     const opciones = {
                         suggestedName: nombreSugerido,
-                        types: [{ description: 'Archivo JSON de Rol', accept: {'application/json': ['.json']} }],
+                        // --- ACTUALIZADO: Ahora le dice a Windows que es un archivo JavaScript (.js) ---
+                        types: [{ description: 'Ficha de Rol (.js)', accept: {'text/javascript': ['.js']} }],
                     };
                     const manejador = await window.showSaveFilePicker(opciones);
                     const archivo = await manejador.createWritable();
@@ -1670,7 +1797,8 @@
                 if (error.name === 'AbortError') return false; 
                 
                 // PLAN B (Para navegadores viejos o celulares): Descarga normal
-                const blob = new Blob([contenidoTexto], { type: "application/json" });
+                // --- ACTUALIZADO: El "Blob" ahora se crea como archivo de texto JS ---
+                const blob = new Blob([contenidoTexto], { type: "text/javascript" });
                 const enlace = document.createElement("a");
                 enlace.href = URL.createObjectURL(blob);
                 enlace.download = nombreSugerido;
@@ -1679,36 +1807,81 @@
             }
         }
 
-        // 1. Guardar la Ficha desde el Campamento
+        // 1. Guardar la Ficha desde el Campamento (Ahora en formato .js)
         async function sobrescribirPersonaje() {
+            // Tomamos los datos del personaje que estamos viendo
             const pj = campamento[personajeActualIndex];
-            const textoJSON = JSON.stringify(pj, null, 4);
-            let nombreArchivo = (pj.identidad.nombre || "HeroeActualizado") + "_FichaRol.json";
             
-            const exito = await guardarArchivoAvanzado(textoJSON, nombreArchivo);
-            if (exito) alert("¡El estado actual de " + pj.identidad.nombre + " ha sido guardado! 💾");
+            // Convertimos sus datos a texto
+            const textoJSON = JSON.stringify(pj, null, 4);
+            
+            // --- NUEVO: Lo envolvemos para que sea un archivo JavaScript válido ---
+            const textoJS = "const fichaPersonaje = " + textoJSON + ";";
+            
+            // --- NUEVO: Cambiamos la terminación del archivo a .js ---
+            let nombreArchivo = (pj.identidad.nombre || "HeroeActualizado") + "_FichaRol.js";
+            
+            // Guardamos usando la ventana de Windows
+            const exito = await guardarArchivoAvanzado(textoJS, nombreArchivo);
+            
+            if (exito) {
+                alert("¡El estado actual de " + pj.identidad.nombre + " ha sido guardado con éxito! 💾");
+            }
         }
 
         // 2. Guardar la Ficha desde el Creador Nuevo
         async function guardarPersonaje() {
+            // Función pequeñita para buscar la descripción del objeto en la enciclopedia al guardar
+            const obtenerDesc = (nombre) => {
+                if(!nombre) return "";
+                const obj = typeof baseDeDatosCompendio !== 'undefined' ? baseDeDatosCompendio.find(i => i.nombre === nombre) : null;
+                return obj ? obj.desc : "";
+            };
+
             const personajeDatos = {
-                identidad: { nombre: document.getElementById('nombreInput').value, especie: document.getElementById('especieInput').value, fotoBase64: document.getElementById('imagenPersonaje').src, ajustesFoto: { zoom: document.getElementById('zoomFoto').value, x: document.getElementById('xFoto').value, y: document.getElementById('yFoto').value } },
+                identidad: { nombre: document.getElementById('nombreInput').value, especie: document.getElementById('especieInput').value, alineamiento: document.getElementById('alineamientoInput').value, fotoBase64: document.getElementById('imagenPersonaje').src, ajustesFoto: { zoom: document.getElementById('zoomFoto').value, x: document.getElementById('xFoto').value, y: document.getElementById('yFoto').value } },
                 vitalidad: { lvl: parseInt(document.getElementById('lvlInput').value) || 1, exp: 0, hp: document.getElementById('hpInput').value, pp: document.getElementById('ppInput').value },
                 atributos: { atq: document.getElementById('atqInput').value, def: document.getElementById('defInput').value, atqEsp: document.getElementById('atqEspInput').value, defEsp: document.getElementById('defEspInput').value, vel: document.getElementById('velInput').value, ci: document.getElementById('ciInput').value },
                 habilidades: [ { nombre: document.getElementById('habilidad1Nombre').value, descripcion: document.getElementById('habilidad1Desc').value }, { nombre: document.getElementById('habilidad2Nombre').value, descripcion: document.getElementById('habilidad2Desc').value } ],
                 ataques: [ { nombre: document.getElementById('ataque1Nombre').value, descripcion: document.getElementById('ataque1Desc').value }, { nombre: document.getElementById('ataque2Nombre').value, descripcion: document.getElementById('ataque2Desc').value } ],
-                equipo: [ { nombre: document.getElementById('equipo1Nombre').value, descripcion: document.getElementById('equipo1Desc').value }, { nombre: document.getElementById('equipo2Nombre').value, descripcion: document.getElementById('equipo2Desc').value }, { nombre: document.getElementById('equipo3Nombre').value, descripcion: document.getElementById('equipo3Desc').value } ],
-                dinero: 0, baul: [], inventario: [ document.getElementById('obj1').value, document.getElementById('obj2').value, document.getElementById('obj3').value, document.getElementById('obj4').value, document.getElementById('obj5').value ],
+                
+                // --- NUEVO LECTOR DE EQUIPAMIENTO ---
+                equipo: [ 
+                    { nombre: document.getElementById('creadorEquip1').value, descripcion: obtenerDesc(document.getElementById('creadorEquip1').value) }, 
+                    { nombre: document.getElementById('creadorEquip2').value, descripcion: obtenerDesc(document.getElementById('creadorEquip2').value) }, 
+                    { nombre: document.getElementById('creadorEquip3').value, descripcion: obtenerDesc(document.getElementById('creadorEquip3').value) } 
+                ],
+                dinero: 0, 
+                baul: [], 
+                
+                // --- NUEVO LECTOR DE CONSUMIBLES (CORREGIDO CON DESCRIPCIONES) ---
+                inventario: [ 
+                    { nombre: document.getElementById('creadorCons1').value, descripcion: obtenerDesc(document.getElementById('creadorCons1').value) },
+                    { nombre: document.getElementById('creadorCons2').value, descripcion: obtenerDesc(document.getElementById('creadorCons2').value) },
+                    { nombre: document.getElementById('creadorCons3').value, descripcion: obtenerDesc(document.getElementById('creadorCons3').value) },
+                    { nombre: "", descripcion: "" }, 
+                    { nombre: "", descripcion: "" } 
+                ],
+                
                 historia: { titulo: document.getElementById('tituloHistoria').value, texto: document.getElementById('textoHistoria').value, objetivos: [ { nombre: document.getElementById('nombreObj1').value, fotoBase64: document.getElementById('imgObj1').src }, { nombre: document.getElementById('nombreObj2').value, fotoBase64: document.getElementById('imgObj2').src }, { nombre: document.getElementById('nombreObj3').value, fotoBase64: document.getElementById('imgObj3').src } ] }
             };
+
+            // --- CONVERSIÓN A .JS EN LUGAR DE .JSON ---
             const textoJSON = JSON.stringify(personajeDatos, null, 4);
-            let nombreArchivo = (document.getElementById('nombreInput').value || "HeroeMisterioso") + "_FichaRol.json";
+            const textoJS = "const fichaPersonaje = " + textoJSON + ";";
+            let nombreArchivo = (document.getElementById('nombreInput').value || "HeroeMisterioso") + "_FichaRol.js"; // Cambiado a .js
             
-            const exito = await guardarArchivoAvanzado(textoJSON, nombreArchivo);
+            const exito = await guardarArchivoAvanzado(textoJS, nombreArchivo);
             if (exito) {
                 alert("¡La ficha de " + nombreArchivo + " ha sido forjada y descargada con éxito! 💾");
                 limpiarFormularioCreador();
                 cambiarPantalla('pantallaInicio');
+
+                // --- NUEVO: REBOBINAR LA MÚSICA ---
+                const musica = document.getElementById('musicaTema');
+                if (musica) {
+                    musica.currentTime = 0; // Regresa al segundo cero
+                }
             }
         }
 
@@ -1748,12 +1921,29 @@
         }
 
         function limpiarFormularioCreador() {
-            // 1. Borramos todos los textos y descripciones
-            const idsTextos = ['nombreInput', 'especieInput', 'habilidad1Nombre', 'habilidad1Desc', 'habilidad2Nombre', 'habilidad2Desc', 'ataque1Nombre', 'ataque1Desc', 'ataque2Nombre', 'ataque2Desc', 'equipo1Nombre', 'equipo1Desc', 'equipo2Nombre', 'equipo2Desc', 'equipo3Nombre', 'equipo3Desc', 'obj1', 'obj2', 'obj3', 'obj4', 'obj5', 'tituloHistoria', 'textoHistoria', 'nombreObj1', 'nombreObj2', 'nombreObj3'];
+            // 1. Borramos todos los textos y descripciones (Ya limpios de código viejo)
+            const idsTextos = ['nombreInput', 'especieInput', 'habilidad1Nombre', 'habilidad1Desc', 'habilidad2Nombre', 'habilidad2Desc', 'ataque1Nombre', 'ataque1Desc', 'ataque2Nombre', 'ataque2Desc', 'tituloHistoria', 'textoHistoria', 'nombreObj1', 'nombreObj2', 'nombreObj3'];
             idsTextos.forEach(id => { 
                 const el = document.getElementById(id); 
                 if(el) el.value = ''; 
             });
+
+            // --- NUEVO: LIMPIEZA DEL INVENTARIO Y ALINEAMIENTO ---
+            const idsListas = ['creadorEquip1', 'creadorEquip2', 'creadorEquip3', 'creadorCons1', 'creadorCons2', 'creadorCons3'];
+            idsListas.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+
+            const idsDescripciones = ['descEquip1', 'descEquip2', 'descEquip3', 'descCons1', 'descCons2', 'descCons3'];
+            idsDescripciones.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.style.display = 'none';
+            });
+
+            const alineamiento = document.getElementById('alineamientoInput');
+            if(alineamiento) alineamiento.value = 'Neutral Verdadero';
+            // -----------------------------------------------------
 
             // 2. Reseteamos la vida (20/10) y los Stats (todo a 0)
             document.getElementById('hpInput').value = 20; 
@@ -2352,6 +2542,64 @@
             // Como le pusimos Auto-Guardado, no necesitas hacer nada más, pero avisamos.
             alert("¡El Diario del Aventurero ha sido actualizado! 📜");
         }
+
+        // --- FUNCIÓN PARA MOSTRAR LA DESCRIPCIÓN INDIVIDUAL ---
+        function mostrarDescripcionObjeto(nombreObjeto, idCajaDesc) {
+            const cajaInfo = document.getElementById(idCajaDesc);
+            if (!cajaInfo) return;
+            
+            if (!nombreObjeto) {
+                cajaInfo.style.display = 'none'; // Oculta la caja si seleccionan espacio vacío
+                return;
+            }
+
+            const objeto = baseDeDatosCompendio.find(i => i.nombre === nombreObjeto);
+            
+            if (objeto) {
+                cajaInfo.style.display = 'block'; // Muestra la caja
+                const descripcionFormateada = objeto.desc.replace(/\n/g, '<br>');
+                
+                cajaInfo.innerHTML = `
+                    <strong style="color: #8b0000;">${objeto.nombre}</strong> <em style="font-size: 12px;">(${objeto.clasificacion || objeto.tipo})</em><br>
+                    <div style="margin-top: 4px;">${descripcionFormateada}</div>
+                `;
+            }
+        }
+
+        // --- ACTUALIZAR LISTAS Y CONECTAR LAS CAJAS ---
+        function actualizarListasCreador() {
+            if (typeof baseDeDatosCompendio === 'undefined' || baseDeDatosCompendio.length === 0) return;
+
+            const equipoNv1 = baseDeDatosCompendio.filter(i => (i.tipo === 'arma' || i.tipo === 'armadura' || i.tipo === 'reliquia') && parseInt(i.nivel) === 1);
+            const consumiblesNv1 = baseDeDatosCompendio.filter(i => i.tipo === 'consumible' && parseInt(i.nivel) === 1);
+
+            const rellenar = (idSelector, idCajaDesc, listaObjetos, textoPorDefecto) => {
+                const select = document.getElementById(idSelector);
+                if (!select) return; 
+                
+                select.innerHTML = `<option value="">-- ${textoPorDefecto} --</option>`;
+                listaObjetos.forEach(item => {
+                    const elemTxt = item.elemento ? ` [${item.elemento}]` : '';
+                    select.innerHTML += `<option value="${item.nombre}">${item.nombre}${elemTxt}</option>`;
+                });
+
+                // Le decimos al selector que actualice SU propia caja de info
+                select.addEventListener('change', function() {
+                    mostrarDescripcionObjeto(this.value, idCajaDesc);
+                });
+            };
+
+            // Rellenamos y conectamos (Selector -> Caja de Descripción)
+            rellenar('creadorEquip1', 'descEquip1', equipoNv1, 'Espacio de Equipo 1');
+            rellenar('creadorEquip2', 'descEquip2', equipoNv1, 'Espacio de Equipo 2');
+            rellenar('creadorEquip3', 'descEquip3', equipoNv1, 'Espacio de Equipo 3');
+            
+            rellenar('creadorCons1', 'descCons1', consumiblesNv1, 'Espacio de Consumible 1');
+            rellenar('creadorCons2', 'descCons2', consumiblesNv1, 'Espacio de Consumible 2');
+            rellenar('creadorCons3', 'descCons3', consumiblesNv1, 'Espacio de Consumible 3');
+        }
+
+        setTimeout(actualizarListasCreador, 500);
     </script>
 </body>
 </html>
