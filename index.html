@@ -108,12 +108,15 @@
         @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
 
+<body>
     <body>
-    <audio id="musicaTema" loop oncanplay="this.volume = 0.3">
-        <source src="music/fichacharacter.mp3" type="audio/mpeg">
-    </audio>
+
+        <audio id="bgm_fichacharacter" loop><source src="music/fichacharacter.mp3" type="audio/mpeg"></audio>
+        <audio id="bgm_masterbook" loop><source src="music/masterbook.ogg" type="audio/ogg"></audio>
+        <audio id="bgm_rules" loop><source src="music/rules.ogg" type="audio/ogg"></audio>
+        <audio id="bgm_shop" loop><source src="music/shop.ogg" type="audio/ogg"></audio>
+        <audio id="bgm_camp" loop><source src="music/camp.ogg" type="audio/ogg"></audio>
 
     <div class="contenedor-pergamino">
         
@@ -898,51 +901,82 @@
                 });
                 
                 document.getElementById(pantallaDestino).style.display = 'block'; 
+                
                 // NUEVO: Cargar lista de clientes al entrar a la tienda
                 if (pantallaDestino === 'pantallaTienda') {
                     actualizarSelectorCompradores();
                     inicializarTienda();
                 }
-                window.scrollTo({ top: 0, behavior: 'smooth' }); 
+
+                // --- NUEVO: REFRESCAR EL CREADOR SIEMPRE QUE ENTRES ---
+                if (pantallaDestino === 'pantallaStats') {
+                    if (typeof actualizarListasCreador === 'function') {
+                        actualizarListasCreador();
+                    }
+                }
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 
                 if (pantallaDestino === 'pantallaStats' && typeof radarChart !== 'undefined') radarChart.update();
                 if (pantallaDestino === 'pantallaResumen' && typeof radarChartResumen !== 'undefined') radarChartResumen.update();
                 if (pantallaDestino === 'pantallaVistaPersonaje' && typeof radarChartVista !== 'undefined') radarChartVista.update();
                 if (pantallaDestino === 'pantallaMovimientos') filtrarCompendio();
 
-                // --- MAGIA MUSICAL ---
-                const musica = document.getElementById('musicaTema');
-                if (musica) {
-                    // Si entramos a cualquier parte del Creador de Personajes...
-                    if (pantallaDestino === 'pantallaStats' || pantallaDestino === 'pantallaHistoria' || pantallaDestino === 'pantallaResumen') {
-                        if (musica.paused) {
-                            musica.volume = 0.2; // Aseguramos que el volumen esté al máximo
-                            musica.play().catch(e => console.log("El navegador pide un primer clic antes de reproducir audio."));
-                        }
-                    } else {
-                        // Si salimos al menú principal, campamento o dados, apagamos suavemente
-                        hacerFadeOutMusica();
-                    }
+                // --- MAGIA MUSICAL: BANDA SONORA MULTI-PISTAS ---
+                let idMusicaDestino = null;
+
+                // 1. Decidimos qué canción toca según la pantalla
+                if (pantallaDestino === 'pantallaStats' || pantallaDestino === 'pantallaHistoria' || pantallaDestino === 'pantallaResumen') {
+                    idMusicaDestino = 'bgm_fichacharacter';
+                } else if (pantallaDestino === 'pantallaMovimientos') {
+                    idMusicaDestino = 'bgm_masterbook';
+                } else if (pantallaDestino === 'pantallaInfo') {
+                    idMusicaDestino = 'bgm_rules';
+                } else if (pantallaDestino === 'pantallaTienda') {
+                    idMusicaDestino = 'bgm_shop';
+                } else if (pantallaDestino === 'pantallaCampamento') { //|| pantallaDestino === 'pantallaInicio' || pantallaDestino === 'pantallaVistaPersonaje') {
+                    idMusicaDestino = 'bgm_camp';
                 }
+
+                // 2. Transición suave de pistas
+                const todasLasPistas = ['bgm_fichacharacter', 'bgm_masterbook', 'bgm_rules', 'bgm_shop', 'bgm_camp'];
+                
+                todasLasPistas.forEach(id => {
+                    const pista = document.getElementById(id);
+                    if (pista) {
+                        if (id === idMusicaDestino) {
+                            // Encendemos la pista correcta si estaba pausada
+                            if (pista.paused) {
+                                pista.volume = 0.2; // Nos aseguramos de que empiece al 30%
+                                pista.play().catch(e => console.log("Clic requerido para audio"));
+                            }
+                        } else {
+                            // MAGIA CINE: Si es una pista que estaba sonando y ya no debe sonar, le hacemos Fade Out
+                            hacerFadeOutMusica(id);
+                        }
+                    }
+                });
             } catch (error) { console.error("Error cambiando pantalla:", error); }
         }
 
-        // --- EFECTO DE CINE: BAJAR EL VOLUMEN POCO A POCO (FADE OUT) ---
-        function hacerFadeOutMusica() {
-            const musica = document.getElementById('musicaTema');
+        // --- EFECTO DE CINE: BAJAR EL VOLUMEN POCO A POCO (FADE OUT) MULTI-PISTA ---
+        function hacerFadeOutMusica(idMusica) {
+            const musica = document.getElementById(idMusica);
+            // Si no existe, o si ya está pausada, no hacemos nada
             if (!musica || musica.paused) return;
 
             let volumen = musica.volume;
             // Un reloj interno que se ejecuta cada 100 milisegundos
             const fade = setInterval(() => {
-                if (volumen > 0.05) {
-                    volumen -= 0.05; // Le bajamos 5% el volumen
-                    musica.volume = volumen;
+                if (volumen > 0.02) {
+                    volumen -= 0.02; // Le bajamos 2% el volumen
+                    musica.volume = Math.max(0, volumen); // Evita errores de números negativos
                 } else {
                     // Cuando ya no se escucha, apagamos el reloj y la canción
                     clearInterval(fade);
                     musica.pause();
-                    musica.volume = 1; // Reseteamos el volumen para la próxima vez que entres
+                    musica.currentTime = 0; // NUEVO: Reseteamos la canción desde el principio
+                    musica.volume = 0.2; // Reseteamos el volumen al 30% para la próxima vez
                 }
             }, 100); 
         }
@@ -1743,6 +1777,7 @@
             });
         }
 
+        //TIENDA.
         function comprarItemTienda(categoria, indexItem) {
             const indexComprador = document.getElementById('selectorComprador').value;
             if (indexComprador == -1) { alert("❌ ¡Debes seleccionar quién va a pagar antes de comprar!"); return; }
@@ -2019,6 +2054,8 @@
         function cerrarModalMejoras() {
             document.getElementById('modalMejoras').style.display = 'none';
         }
+
+        //MEJORAS Y SUBIDAS DE NIVEL
 
         function aplicarMejoras() {
             const pj = campamento[personajeActualIndex];
@@ -2600,6 +2637,30 @@
         }
 
         setTimeout(actualizarListasCreador, 500);
+
+        // --- SISTEMA PROFESIONAL DE LOOP POINTS MULTI-PISTA ---
+        const configuracionLoops = [
+            // Reemplaza los números (0.0 y 100.0) con los segundos exactos de tus canciones
+            { id: 'bgm_fichacharacter', inicio: 78.0, fin: 1761.0 }, 
+            { id: 'bgm_masterbook',     inicio: 1.2,  fin: 69.50 },      
+            { id: 'bgm_rules',          inicio: 97.0,  fin: 192.0 },           
+            { id: 'bgm_shop',           inicio: 30.0,  fin: 56.52 },            
+            { id: 'bgm_camp',           inicio: 94.0,  fin: 188.0 }             
+        ];
+
+        // Aplicamos el truco hacker a cada canción de la lista
+        configuracionLoops.forEach(config => {
+            const pista = document.getElementById(config.id);
+            if (pista) {
+                pista.addEventListener('timeupdate', function() {
+                    // Si la canción cruza tu punto de corte, la regresamos al punto de inicio
+                    if (this.currentTime >= config.fin) {
+                        this.currentTime = config.inicio; 
+                        this.play();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
