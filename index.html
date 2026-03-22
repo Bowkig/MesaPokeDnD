@@ -1813,9 +1813,9 @@
 
         // --- SISTEMA AVANZADO DE GUARDADO ("GUARDAR COMO...") ---
         async function guardarArchivoAvanzado(contenidoTexto, nombreSugerido) {
-            try {
-                // --- PARTE DE PC (INTACTA) ---
-                if (window.showSaveFilePicker) {
+            // 1. Detección rápida: Si es PC moderna, hace su magia normal
+            if (window.showSaveFilePicker) {
+                try {
                     const opciones = {
                         suggestedName: nombreSugerido,
                         types: [{ description: 'Ficha de Rol (.js)', accept: {'text/javascript': ['.js']} }],
@@ -1825,37 +1825,35 @@
                     await archivo.write(contenidoTexto);
                     await archivo.close();
                     return true;
-                } else {
-                    // Forzamos el error para que salte al Plan B en celulares
-                    throw new Error("No soporta showSaveFilePicker (es celular)");
+                } catch (error) {
+                    if (error.name === 'AbortError') return false; // El usuario canceló
                 }
-            } catch (error) {
-                if (error.name === 'AbortError') return false; 
+            }
+
+            // 2. PLAN B (Celulares): Se ejecuta directo, sin retrasos que rompan el clic
+            try {
+                // TRUCO MAESTRO: 'application/octet-stream' fuerza la descarga y evita bloqueos de seguridad móvil
+                const blob = new Blob([contenidoTexto], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                const enlace = document.createElement("a");
                 
-                // --- PLAN B (MÓVILES) CON TRAMPA DE ERRORES ---
-                try {
-                    const blob = new Blob([contenidoTexto], { type: "text/javascript" });
-                    const url = URL.createObjectURL(blob);
-                    const enlace = document.createElement("a");
-                    enlace.style.display = "none"; // Lo ocultamos visualmente
-                    enlace.href = url;
-                    enlace.download = nombreSugerido;
-                    
-                    document.body.appendChild(enlace);
-                    enlace.click();
-                    
-                    // Magia para celulares: Le damos 500 milisegundos para procesar la descarga
-                    setTimeout(() => {
-                        document.body.removeChild(enlace);
-                        URL.revokeObjectURL(url);
-                    }, 500);
-                    
-                    return true;
-                } catch (errorCelular) {
-                    // Si algo explota aquí, el celular nos lanzará este mensaje a la cara
-                    alert("Error al guardar en el celular: " + errorCelular.message);
-                    return false;
-                }
+                enlace.style.display = "none";
+                enlace.href = url;
+                enlace.download = nombreSugerido;
+                enlace.target = "_blank"; // Ayuda a Opera GX móvil a no trabarse
+                
+                document.body.appendChild(enlace);
+                enlace.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(enlace);
+                    URL.revokeObjectURL(url);
+                }, 500);
+                
+                return true;
+            } catch (errorCelular) {
+                alert("Maldición, error en móvil: " + errorCelular.message);
+                return false;
             }
         }
 
