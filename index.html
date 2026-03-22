@@ -1813,7 +1813,8 @@
 
         // --- SISTEMA AVANZADO DE GUARDADO ("GUARDAR COMO...") ---
         async function guardarArchivoAvanzado(contenidoTexto, nombreSugerido) {
-            // 1. Detección rápida: Si es PC moderna, hace su magia normal
+            
+            // 1. PARTE PC: Intenta abrir la ventana de Windows/Mac (INTACTO)
             if (window.showSaveFilePicker) {
                 try {
                     const opciones = {
@@ -1826,33 +1827,47 @@
                     await archivo.close();
                     return true;
                 } catch (error) {
-                    if (error.name === 'AbortError') return false; // El usuario canceló
+                    if (error.name === 'AbortError') return false; 
                 }
             }
 
-            // 2. PLAN B (Alternativa Data URI para navegadores rebeldes como Opera GX)
+            // 2. PLAN B (EL ATAQUE FINAL PARA CELULARES)
             try {
-                // Encriptamos todo el texto de tu ficha para que sea una URL válida
-                const textoCodificado = encodeURIComponent(contenidoTexto);
+                // Creamos un archivo real en memoria (usamos text/plain para que el celular no se asuste con el .js)
+                const archivoJS = new File([contenidoTexto], nombreSugerido, { type: "text/plain" });
+
+                // Táctica A: Intentar abrir el menú de "Compartir/Guardar" nativo del celular
+                if (navigator.canShare && navigator.canShare({ files: [archivoJS] })) {
+                    await navigator.share({
+                        files: [archivoJS],
+                        title: 'Ficha de ' + nombreSugerido,
+                        text: 'Aquí está la ficha de tu héroe.'
+                    });
+                    // Si el menú se abre y el usuario elige dónde guardarlo, devolvemos éxito
+                    return true; 
+                } 
                 
+                // Táctica B: La descarga clásica (por si alguien usa Edge o Chrome móvil y no soporta Share)
+                const url = URL.createObjectURL(archivoJS);
                 const enlace = document.createElement("a");
                 enlace.style.display = "none";
-                // Le pasamos los datos directamente en el enlace
-                enlace.href = "data:application/octet-stream;charset=utf-8," + textoCodificado;
+                enlace.href = url;
                 enlace.download = nombreSugerido;
-                enlace.target = "_blank";
-                
                 document.body.appendChild(enlace);
                 enlace.click();
-                
-                setTimeout(() => {
-                    document.body.removeChild(enlace);
-                }, 500);
-                
+                setTimeout(() => { document.body.removeChild(enlace); URL.revokeObjectURL(url); }, 500);
                 return true;
+
             } catch (errorCelular) {
-                alert("Error en móvil: " + errorCelular.message);
-                return false;
+                // Táctica C (LA OPCIÓN NUCLEAR): Si Opera GX destruye el proceso, salvamos los datos en el portapapeles
+                try {
+                    await navigator.clipboard.writeText(contenidoTexto);
+                    alert("Opera GX bloqueó la descarga, pero copiamos todo el código de tu personaje al portapapeles. ¡Pégalo en un bloc de notas rápido!");
+                    return true;
+                } catch (errorPortapapeles) {
+                    alert("Fallo total del navegador: " + errorCelular.message);
+                    return false;
+                }
             }
         }
 
