@@ -1814,39 +1814,48 @@
         // --- SISTEMA AVANZADO DE GUARDADO ("GUARDAR COMO...") ---
         async function guardarArchivoAvanzado(contenidoTexto, nombreSugerido) {
             try {
-                // Intenta abrir la ventana de Windows/Mac para elegir carpeta y nombre
+                // --- PARTE DE PC (INTACTA) ---
                 if (window.showSaveFilePicker) {
                     const opciones = {
                         suggestedName: nombreSugerido,
-                        // --- ACTUALIZADO: Ahora le dice a Windows que es un archivo JavaScript (.js) ---
                         types: [{ description: 'Ficha de Rol (.js)', accept: {'text/javascript': ['.js']} }],
                     };
                     const manejador = await window.showSaveFilePicker(opciones);
                     const archivo = await manejador.createWritable();
                     await archivo.write(contenidoTexto);
                     await archivo.close();
-                    return true; // Se guardó con éxito
+                    return true;
                 } else {
-                    throw new Error("El navegador no soporta la ventana de guardado.");
+                    // Forzamos el error para que salte al Plan B en celulares
+                    throw new Error("No soporta showSaveFilePicker (es celular)");
                 }
             } catch (error) {
-                // Si el usuario le da a "Cancelar" en la ventana, no hacemos nada
                 if (error.name === 'AbortError') return false; 
                 
-                // PLAN B (Para navegadores viejos o celulares): Descarga normal
-                const blob = new Blob([contenidoTexto], { type: "text/javascript" });
-                const enlace = document.createElement("a");
-                const url = URL.createObjectURL(blob); // Guardamos la URL para limpiarla después
-                enlace.href = url;
-                enlace.download = nombreSugerido;
-                
-                // --- LOS 3 CAMBIOS AÑADIDOS PARA EL CELULAR ---
-                document.body.appendChild(enlace); // 1. Pegamos el enlace a la página web
-                enlace.click();                    // 2. Ejecutamos el clic
-                document.body.removeChild(enlace); // 3. Borramos el enlace para no dejar rastro
-                
-                URL.revokeObjectURL(url); // (Opcional pero recomendado) Limpia la memoria del navegador
-                return true;
+                // --- PLAN B (MÓVILES) CON TRAMPA DE ERRORES ---
+                try {
+                    const blob = new Blob([contenidoTexto], { type: "text/javascript" });
+                    const url = URL.createObjectURL(blob);
+                    const enlace = document.createElement("a");
+                    enlace.style.display = "none"; // Lo ocultamos visualmente
+                    enlace.href = url;
+                    enlace.download = nombreSugerido;
+                    
+                    document.body.appendChild(enlace);
+                    enlace.click();
+                    
+                    // Magia para celulares: Le damos 500 milisegundos para procesar la descarga
+                    setTimeout(() => {
+                        document.body.removeChild(enlace);
+                        URL.revokeObjectURL(url);
+                    }, 500);
+                    
+                    return true;
+                } catch (errorCelular) {
+                    // Si algo explota aquí, el celular nos lanzará este mensaje a la cara
+                    alert("Error al guardar en el celular: " + errorCelular.message);
+                    return false;
+                }
             }
         }
 
