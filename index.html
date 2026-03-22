@@ -778,7 +778,9 @@
 
                 <h3 style="font-size: 16px; border-bottom: 1px dashed #8b4513; padding-bottom: 5px;">🎒 Dar Objeto del Compendio</h3>
                 <p style="font-size: 11px; color: #5c0000; margin-top: -5px; margin-bottom: 10px;">(Selecciona un objeto de tu Enciclopedia. Se enviará a los bolsillos o a la reserva si no hay espacio).</p>
-                <select id="selectorNuevoObjeto" style="width: 100%; padding: 8px; font-family: 'Georgia'; margin-bottom: 10px; border: 1px solid #8b4513; border-radius: 4px; background: #fffaf0; font-weight: bold; color: #8b0000;">
+                <!---<select id="selectorNuevoObjeto" style="width: 100%; padding: 8px; font-family: 'Georgia'; margin-bottom: 10px; border: 1px solid #8b4513; border-radius: 4px; background: #fffaf0; font-weight: bold; color: #8b0000;">--->
+                    <input type="text" id="inputNuevoObjeto" list="selectorNuevoObjeto" placeholder="🔎 Escribe para buscar objeto..." autocomplete="off" style="width: 100%; padding: 10px; border: 1px solid #a0522d; border-radius: 4px; background-color: #fffaf0; font-family: inherit; font-size: 14px; box-sizing: border-box; margin-top: 5px;">
+                    <datalist id="selectorNuevoObjeto"></datalist>
                     <option value="">-- Elige un objeto --</option>
                 </select>
                     <button class="btn-secundario" style="margin-top: 0;" onclick="cerrarModalMejoras()">Cancelar</button>
@@ -1832,12 +1834,18 @@
                 if (error.name === 'AbortError') return false; 
                 
                 // PLAN B (Para navegadores viejos o celulares): Descarga normal
-                // --- ACTUALIZADO: El "Blob" ahora se crea como archivo de texto JS ---
                 const blob = new Blob([contenidoTexto], { type: "text/javascript" });
                 const enlace = document.createElement("a");
-                enlace.href = URL.createObjectURL(blob);
+                const url = URL.createObjectURL(blob); // Guardamos la URL para limpiarla después
+                enlace.href = url;
                 enlace.download = nombreSugerido;
-                enlace.click();
+                
+                // --- LOS 3 CAMBIOS AÑADIDOS PARA EL CELULAR ---
+                document.body.appendChild(enlace); // 1. Pegamos el enlace a la página web
+                enlace.click();                    // 2. Ejecutamos el clic
+                document.body.removeChild(enlace); // 3. Borramos el enlace para no dejar rastro
+                
+                URL.revokeObjectURL(url); // (Opcional pero recomendado) Limpia la memoria del navegador
                 return true;
             }
         }
@@ -2131,11 +2139,22 @@
                 }
             }
 
-            // --- 4. OBJETOS Y BOTÍN (VERSIÓN ENCICLOPEDIA) ---
-            const selectObj = document.getElementById('selectorNuevoObjeto');
-            const opcionSelec = selectObj.options[selectObj.selectedIndex];
+            // --- 4. OBJETOS Y BOTÍN (VERSIÓN BUSCADOR INTELIGENTE) ---
+            const inputTxt = document.getElementById('inputNuevoObjeto');
+            const listaOpciones = document.getElementById('selectorNuevoObjeto');
+            let opcionSelec = null;
 
-            if (opcionSelec && opcionSelec.value !== '') {
+            if (inputTxt && inputTxt.value !== '') {
+                // Buscamos qué opción de la lista oculta coincide con lo que el usuario escribió
+                for (let i = 0; i < listaOpciones.options.length; i++) {
+                    if (listaOpciones.options[i].value === inputTxt.value) {
+                        opcionSelec = listaOpciones.options[i];
+                        break;
+                    }
+                }
+            }
+
+            if (opcionSelec) {
                 if (!pj.baul) pj.baul = []; 
                 let agregado = false;
                 
@@ -2158,7 +2177,7 @@
                     for(let i=0; i<5; i++) { 
                         let nombreEnBolsillo = typeof pj.inventario[i] === 'string' ? pj.inventario[i] : (pj.inventario[i] ? pj.inventario[i].nombre : "");
                         if(!nombreEnBolsillo || nombreEnBolsillo.trim() === '') {
-                            pj.inventario[i] = { nombre: nombreObj, descripcion: descObj }; // Guarda el objeto COMPLETO
+                            pj.inventario[i] = { nombre: nombreObj, descripcion: descObj }; 
                             agregado = true; break;
                         }
                     }
@@ -2167,6 +2186,9 @@
                         alert(`🧪 ¡Tus bolsillos rápidos están llenos!\nEl objeto "${nombreObj}" se ha guardado automáticamente en tu 🎒 Reserva.`);
                     }
                 }
+                
+                // Limpiamos el buscador después de darle el objeto
+                inputTxt.value = '';
             }
 
             // --- 5. REFRESCO VISUAL ---
@@ -2661,6 +2683,34 @@
                 });
             }
         });
+
+        // --- PRUEBA DE CONEXIÓN V2.0 ---
+        //function cargarPersonajesDesdeSQL() {
+            // Reemplaza TU_NUMERO con el puerto de tu Swagger
+        //    const urlApi = 'https://localhost:TU_NUMERO/api/Personajes';
+
+        //    console.log("Llamando a la API en: " + urlApi);
+
+            // fetch es el comando de JS para ir a pedir datos a internet/servidores
+        //    fetch(urlApi)
+        //        .then(respuesta => {
+        //            if (!respuesta.ok) {
+        //                throw new Error("¡Error en la red! Estado: " + respuesta.status);
+        //            }
+        //            return respuesta.json(); // Transformamos el texto crudo en un objeto JavaScript
+        //        })
+        //        .then(datosPersonajes => {
+        //            console.log("¡ÉXITO! Personajes traídos desde SQL Server:", datosPersonajes);
+                    
+        //            // Si funciona, aquí verás los datos de Bowkig impresos en la consola
+        //        })
+        //        .catch(error => {
+        //            console.error("Hubo un problema al conectar con el mesero (API):", error);
+        //        });
+        //}
+
+        // Ejecutamos la función de prueba
+        //cargarPersonajesDesdeSQL();
     </script>
 </body>
 </html>
