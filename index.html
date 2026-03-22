@@ -1830,29 +1830,28 @@
                 }
             }
 
-            // 2. PLAN B (Celulares): Se ejecuta directo, sin retrasos que rompan el clic
+            // 2. PLAN B (Alternativa Data URI para navegadores rebeldes como Opera GX)
             try {
-                // TRUCO MAESTRO: 'application/octet-stream' fuerza la descarga y evita bloqueos de seguridad móvil
-                const blob = new Blob([contenidoTexto], { type: "application/octet-stream" });
-                const url = URL.createObjectURL(blob);
-                const enlace = document.createElement("a");
+                // Encriptamos todo el texto de tu ficha para que sea una URL válida
+                const textoCodificado = encodeURIComponent(contenidoTexto);
                 
+                const enlace = document.createElement("a");
                 enlace.style.display = "none";
-                enlace.href = url;
+                // Le pasamos los datos directamente en el enlace
+                enlace.href = "data:application/octet-stream;charset=utf-8," + textoCodificado;
                 enlace.download = nombreSugerido;
-                enlace.target = "_blank"; // Ayuda a Opera GX móvil a no trabarse
+                enlace.target = "_blank";
                 
                 document.body.appendChild(enlace);
                 enlace.click();
                 
                 setTimeout(() => {
                     document.body.removeChild(enlace);
-                    URL.revokeObjectURL(url);
                 }, 500);
                 
                 return true;
             } catch (errorCelular) {
-                alert("Maldición, error en móvil: " + errorCelular.message);
+                alert("Error en móvil: " + errorCelular.message);
                 return false;
             }
         }
